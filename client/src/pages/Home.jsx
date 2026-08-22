@@ -28,6 +28,7 @@ export default function Home() {
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <Link to="/patient/doctors" className="btn-primary">Find a doctor</Link>
           <Link to="/doctor/onboarding" className="btn-secondary">I'm a doctor — join KapHealth</Link>
+          <Link to="/showcase" className="btn-outline">Showcase all dashboards</Link>
         </div>
         <PulseDivider className="mt-14 opacity-70" animated />
       </section>

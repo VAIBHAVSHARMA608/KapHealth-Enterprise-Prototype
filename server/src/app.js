@@ -21,6 +21,14 @@ const complaintRoutes = require("./routes/complaint.routes");
 const faqRoutes = require("./routes/faq.routes");
 const adminRoutes = require("./routes/admin.routes");
 const patientRoutes = require("./routes/patient.routes");
+const medicineRoutes = require("./routes/medicine.routes");
+const cartRoutes = require("./routes/cart.routes");
+const wishlistRoutes = require("./routes/wishlist.routes");
+const couponRoutes = require("./routes/coupon.routes");
+const notificationRoutes = require("./routes/notification.routes");
+const labTestRoutes = require("./routes/labTest.routes");
+const healthRecordRoutes = require("./routes/healthRecord.routes");
+const wellnessRoutes = require("./routes/wellness.routes");
 
 const app = express();
 
@@ -58,6 +66,14 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/faqs", faqRoutes);
+app.use("/api/store/medicines", medicineRoutes);
+app.use("/api/store/cart", cartRoutes);
+app.use("/api/store/wishlist", wishlistRoutes);
+app.use("/api/store/coupons", couponRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/lab-tests", labTestRoutes);
+app.use("/api/health-records", healthRecordRoutes);
+app.use("/api/wellness", wellnessRoutes);
 
 // ---- Hidden admin surface ----
 // Note: obscurity of the mount path is NOT the security boundary -- the

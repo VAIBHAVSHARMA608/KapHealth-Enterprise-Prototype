@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { MessageCircle, ArrowRight } from "lucide-react";
@@ -15,42 +15,59 @@ import { useAuth } from "../../context/AuthContext.jsx";
  */
 export default function Login() {
   const [role, setRole] = useState("patient");
-  const [step, setStep] = useState("phone"); // phone | otp
+  const [step, setStep] = useState("phone"); // phone | otp | test
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [testId, setTestId] = useState("");
+  const [testPassword, setTestPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const { loginWithToken } = useAuth();
+  const { loginWithToken, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const ADMIN_ROUTE_SECRET = import.meta.env.VITE_ADMIN_ROUTE_SECRET || "kap-ops-9f2a1c";
 
   function postLoginRedirect(user, isNewUser) {
     const from = location.state?.from?.pathname;
     if (isNewUser && user.role === "doctor") return navigate("/doctor/onboarding");
     if (isNewUser && user.role === "patient") return navigate("/patient/onboarding");
-    navigate(from || (user.role === "doctor" ? "/doctor/dashboard" : "/patient/doctors"));
+    if (user.role === "admin") return navigate(`/${ADMIN_ROUTE_SECRET}/dashboard`, { replace: true });
+    navigate(from || (user.role === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"), {
+      replace: true,
+    });
   }
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.role === "admin") {
+        return navigate(`/${ADMIN_ROUTE_SECRET}/dashboard`, { replace: true });
+      }
+      navigate(user.role === "doctor" ? "/doctor/dashboard" : "/patient/dashboard", {
+        replace: true,
+      });
+    }
+  }, [user, authLoading, navigate, ADMIN_ROUTE_SECRET]);
 
   async function requestOtp(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
     try {
       await api.post("/auth/otp/request", { phone, purpose: "login", role });
       setStep("otp");
     } catch (err) {
       setError(err.response?.data?.message || "Couldn't send OTP, check the number and try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
   async function verifyOtp(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
     try {
       const { data } = await api.post("/auth/otp/verify", { phone, code, name, role });
       await loginWithToken(data.accessToken, data.user);
@@ -58,7 +75,7 @@ export default function Login() {
     } catch (err) {
       setError(err.response?.data?.message || "Incorrect code, try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -70,6 +87,21 @@ export default function Login() {
       postLoginRedirect(data.user, data.isNewUser);
     } catch (err) {
       setError(err.response?.data?.message || "Google sign-in failed.");
+    }
+  }
+
+  async function testLogin(e) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      const { data } = await api.post("/auth/test-login", { identifier: testId, password: testPassword });
+      await loginWithToken(data.accessToken, data.user);
+      postLoginRedirect(data.user, false);
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid test credentials.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -96,7 +128,7 @@ export default function Login() {
             ))}
           </div>
 
-          {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && <p className="mt-4 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent backdrop-blur-md">{error}</p>}
 
           {step === "phone" && (
             <form onSubmit={requestOtp} className="mt-6 space-y-4">
@@ -116,8 +148,8 @@ export default function Login() {
                   required
                 />
               </div>
-              <button disabled={loading} className="btn-primary w-full">
-                <MessageCircle size={16} /> {loading ? "Sending..." : "Send OTP via WhatsApp"}
+              <button disabled={submitting} className="btn-primary w-full">
+                <MessageCircle size={16} /> {submitting ? "Sending..." : "Send OTP via WhatsApp"}
               </button>
             </form>
           )}
@@ -133,8 +165,8 @@ export default function Login() {
                 placeholder="000000"
                 required
               />
-              <button disabled={loading} className="btn-primary w-full">
-                {loading ? "Verifying..." : "Verify & continue"} <ArrowRight size={16} />
+              <button disabled={submitting} className="btn-primary w-full">
+                {submitting ? "Verifying..." : "Verify & continue"} <ArrowRight size={16} />
               </button>
               <button type="button" onClick={() => setStep("phone")} className="btn-ghost w-full">
                 Use a different number
@@ -142,13 +174,48 @@ export default function Login() {
             </form>
           )}
 
-          <div className="my-6 flex items-center gap-3 text-xs text-muted">
-            <div className="h-px flex-1 bg-line" /> or <div className="h-px flex-1 bg-line" />
-          </div>
+          {step === "test" && (
+            <form onSubmit={testLogin} className="mt-6 space-y-4">
+              <p className="text-sm text-muted">Test credentials (from <code className="font-mono text-xs">seed:test</code>) -- no OTP needed.</p>
+              <div>
+                <label className="label">Email or phone</label>
+                <input className="input" value={testId} onChange={(e) => setTestId(e.target.value)} placeholder="patient1@kaptest.dev" required />
+              </div>
+              <div>
+                <label className="label">Password</label>
+                <input className="input" type="password" value={testPassword} onChange={(e) => setTestPassword(e.target.value)} required />
+              </div>
+              <button disabled={submitting} className="btn-primary w-full">
+                {submitting ? "Logging in..." : "Log in with test credentials"} <ArrowRight size={16} />
+              </button>
+              <button type="button" onClick={() => setStep("phone")} className="btn-ghost w-full">
+                Back to WhatsApp login
+              </button>
+            </form>
+          )}
 
-          <div className="flex justify-center">
-            <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError("Google sign-in failed.")} />
-          </div>
+          {step !== "test" && (
+            <button
+              type="button"
+              onClick={() => setStep("test")}
+              className="mt-4 w-full text-center text-xs font-medium text-muted underline decoration-dotted hover:text-primary"
+            >
+              Testing locally? Use test credentials instead
+            </button>
+          )}
+
+          {step !== "test" && (
+            <>
+              <div className="my-6 flex items-center gap-3 text-xs text-muted">
+                <div className="h-px flex-1 bg-line" /> or <div className="h-px flex-1 bg-line" />
+              </div>
+
+              <div className="flex justify-center">
+            
+                <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError("Google sign-in failed.")} />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

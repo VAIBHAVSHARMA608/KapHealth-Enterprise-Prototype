@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 const SPECIALIZATIONS = [
   "General Physician", "Cardiologist", "Dermatologist", "Pediatrician",
   "Gynecologist", "Orthopedic", "Psychiatrist", "ENT Specialist", "Dentist",
+  "Endocrinologist",
 ];
 
 export default function DoctorOnboarding() {
@@ -92,7 +93,7 @@ export default function DoctorOnboarding() {
         <h1 className="font-display text-2xl font-medium">Tell us about you, {user?.name?.split(" ")[0] || "doctor"}</h1>
         <p className="mt-1 text-sm text-muted">Every field here is reviewed by our team before you can accept bookings.</p>
 
-        {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="mt-4 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent backdrop-blur-md">{error}</p>}
 
         <form onSubmit={submit} className="mt-8 space-y-8">
           <section className="card space-y-4 p-6">

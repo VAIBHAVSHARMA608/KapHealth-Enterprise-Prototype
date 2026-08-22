@@ -29,6 +29,19 @@ const patientProfileSchema = new mongoose.Schema(
       phone: String,
       relation: String,
     },
+
+    // Phase 3: family members this patient manages care for. Appointments and
+    // lab bookings can be made "for" one of these instead of the account holder.
+    dependents: [
+      {
+        name: { type: String, required: true },
+        relation: { type: String, enum: ["spouse", "child", "parent", "sibling", "other"], required: true },
+        dateOfBirth: { type: Date },
+        gender: { type: String, enum: ["male", "female", "other"] },
+        bloodGroup: { type: String },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -5,8 +5,8 @@ import StatusBadge from "../../components/StatusBadge.jsx";
 import api from "../../services/api.js";
 
 const TONE = {
-  placed: "amber", confirmed: "green", packed: "green", shipped: "coral",
-  out_for_delivery: "coral", delivered: "green", cancelled: "red", returned: "gray",
+  placed: "pending", confirmed: "success", packed: "success", shipped: "processing",
+  out_for_delivery: "processing", delivered: "success", cancelled: "danger", returned: "gray",
 };
 
 export default function OrdersList() {

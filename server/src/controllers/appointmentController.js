@@ -2,12 +2,14 @@ const { v4: uuidv4 } = require("uuid");
 const Appointment = require("../models/Appointment");
 const DoctorProfile = require("../models/DoctorProfile");
 const Payment = require("../models/Payment");
-const razorpay = require("../utils/razorpayClient");
+const User = require("../models/User");
+const { createPaymentIntent } = require("../utils/paymentFlow");
+const { notify } = require("../utils/notify");
 
-/** Patient books a check-up slot. Creates a pending_payment appointment + Razorpay order. */
+/** Patient books a check-up slot. Creates a pending_payment appointment + Razorpay order (or auto-confirms in dev mode). */
 async function bookAppointment(req, res, next) {
   try {
-    const { doctorId, scheduledStart, reasonForVisit } = req.body;
+    const { doctorId, scheduledStart, reasonForVisit, bookingFor } = req.body;
 
     const doctorProfile = await DoctorProfile.findOne({ user: doctorId, onboardingStatus: "approved" });
     if (!doctorProfile) return res.status(404).json({ message: "Doctor not available for booking" });
@@ -31,11 +33,13 @@ async function bookAppointment(req, res, next) {
       reasonForVisit,
       consultationFee: doctorProfile.consultationFee,
       roomId: `apt_${uuidv4()}`,
+      bookingFor: bookingFor?.type === "dependent"
+        ? { type: "dependent", dependentId: bookingFor.dependentId, dependentName: bookingFor.dependentName }
+        : { type: "self" },
     });
 
-    const rzpOrder = await razorpay.orders.create({
-      amount: Math.round(doctorProfile.consultationFee * 100), // paise
-      currency: "INR",
+    const intent = await createPaymentIntent({
+      amountRupees: doctorProfile.consultationFee,
       receipt: `appointment_${appointment._id}`,
     });
 
@@ -45,18 +49,52 @@ async function bookAppointment(req, res, next) {
       referenceId: appointment._id,
       amount: doctorProfile.consultationFee,
       method: "razorpay",
-      razorpayOrderId: rzpOrder.id,
-      status: "created",
+      razorpayOrderId: intent.razorpayOrderId,
+      razorpayPaymentId: intent.razorpayPaymentId,
+      status: intent.devMode ? "captured" : "created",
     });
 
     appointment.payment = payment._id;
+    if (intent.devMode) {
+      appointment.paymentStatus = "paid";
+      appointment.status = "confirmed";
+    }
     await appointment.save();
+
+    if (intent.devMode) {
+      const [patientUser, doctorUser] = await Promise.all([
+        User.findById(req.user.id),
+        User.findById(doctorId),
+      ]);
+      const forWhom = appointment.bookingFor.type === "dependent" ? ` for ${appointment.bookingFor.dependentName}` : "";
+      await notify({
+        user: doctorId,
+        type: "appointment_booked",
+        title: "New appointment booked",
+        message: `${patientUser?.name || "A patient"} booked a consult${forWhom} on ${start.toLocaleString()}.`,
+        relatedType: "appointment",
+        relatedId: appointment._id,
+        channels: { email: true },
+        email: doctorUser?.email,
+      });
+      await notify({
+        user: req.user.id,
+        type: "appointment_confirmed",
+        title: "Appointment confirmed",
+        message: `Your consult with Dr. ${doctorUser?.name || ""}${forWhom} is confirmed for ${start.toLocaleString()}.`,
+        relatedType: "appointment",
+        relatedId: appointment._id,
+        channels: { email: true },
+        email: patientUser?.email,
+      });
+    }
 
     res.status(201).json({
       appointment,
-      razorpayOrderId: rzpOrder.id,
-      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
-      amount: rzpOrder.amount,
+      devMode: intent.devMode,
+      razorpayOrderId: intent.razorpayOrderId,
+      razorpayKeyId: intent.razorpayKeyId,
+      amount: intent.amount,
     });
   } catch (err) {
     next(err);
@@ -153,6 +191,20 @@ async function cancelAppointment(req, res, next) {
     appointment.cancelledBy = req.user.role;
     appointment.cancellationReason = req.body.reason || "";
     await appointment.save();
+
+    const otherPartyId = req.user.role === "patient" ? appointment.doctor : appointment.patient;
+    const otherPartyUser = await User.findById(otherPartyId);
+    await notify({
+      user: otherPartyId,
+      type: "appointment_cancelled",
+      title: "Appointment cancelled",
+      message: `The consult scheduled for ${appointment.scheduledStart.toLocaleString()} was cancelled by the ${req.user.role}${req.body.reason ? `: "${req.body.reason}"` : "."}`,
+      relatedType: "appointment",
+      relatedId: appointment._id,
+      channels: { email: true },
+      email: otherPartyUser?.email,
+    });
+
     res.json({ appointment });
   } catch (err) {
     next(err);

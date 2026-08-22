@@ -4,37 +4,107 @@
 
 @layer base {
   html { scroll-behavior: smooth; }
-  body { @apply bg-surface text-ink antialiased; }
-  h1, h2, h3, h4 { @apply font-display; }
-  :focus-visible { outline: 2px solid #0F6E5B; outline-offset: 2px; }
+  body {
+    @apply text-ink antialiased;
+    background:
+      radial-gradient(80% 60% at 15% -10%, rgba(16,185,129,0.16) 0%, transparent 55%),
+      radial-gradient(60% 50% at 100% 0%, rgba(52,211,153,0.10) 0%, transparent 55%),
+      radial-gradient(50% 40% at 50% 100%, rgba(244,63,94,0.06) 0%, transparent 60%),
+      #020617;
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  :focus-visible { outline: 2px solid #10b981; outline-offset: 2px; }
+  ::selection { background: rgba(16,185,129,0.35); }
 }
 
 @layer components {
+  /* ---- Buttons ---- */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white
-    transition hover:bg-accent-dark active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white
+    shadow-lg shadow-primary/20 transition-all duration-200 hover:bg-primary/90 hover:shadow-primary/30
+    active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-primary/30 bg-white px-6 py-3 text-sm font-semibold text-primary
-    transition hover:bg-primary-light active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-primary/30 bg-white/5 px-6 py-3 text-sm font-semibold text-primary-dark
+    backdrop-blur-md transition-all duration-200 hover:border-primary/50 hover:bg-primary/10
+    active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-muted transition hover:text-ink hover:bg-black/5;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-muted transition hover:text-ink hover:bg-white/5;
   }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-transparent px-6 py-3 text-sm font-semibold text-ink
+    transition-all duration-200 hover:border-white/30 hover:bg-white/5 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white
+    shadow-lg shadow-accent/25 transition-all duration-200 hover:bg-accent-dark active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* ---- Core surfaces (glassmorphism formula applied globally) ---- */
   .card {
-    @apply rounded-xl2 border border-line bg-card;
+    @apply rounded-xl2 border border-white/10 bg-card/65 shadow-glass backdrop-blur-2xl;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted/70
-    focus:border-primary focus:ring-1 focus:ring-primary outline-none transition;
+    @apply w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-ink placeholder:text-muted/60
+    backdrop-blur-md focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none transition;
   }
   .label {
     @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted;
   }
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.14em] text-primary;
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-primary-dark;
   }
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10;
+  }
+  .gradient-hero {
+    background: radial-gradient(120% 140% at 100% 0%, #14806A 0%, #0F6E5B 45%, #052e26 100%);
+  }
+  .gradient-accent {
+    background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+  }
+  .stat-tile {
+    @apply card p-5 transition-all duration-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10;
+  }
+
+  /* ---- Glassmorphism utilities (dark-native now, used app-wide) ---- */
+  .glass-panel {
+    @apply rounded-[1.75rem] border border-white/10 bg-slate-900/65 shadow-glass backdrop-blur-2xl;
+  }
+  .glass-card {
+    @apply rounded-3xl border border-white/10 bg-slate-900/50 backdrop-blur-2xl
+    transition-all duration-200 hover:border-primary/40 hover:bg-slate-900/70 hover:shadow-lg hover:shadow-primary/10;
+  }
+  .glass-dark {
+    @apply rounded-[1.75rem] border border-white/10 bg-slate-950/70 text-white shadow-glass backdrop-blur-2xl;
+  }
+  .glass-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-ink backdrop-blur-md;
+  }
+  .wellness-surface {
+    background:
+      radial-gradient(60% 50% at 10% 0%, rgba(16,185,129,0.14) 0%, transparent 60%),
+      radial-gradient(50% 40% at 90% 10%, rgba(244,63,94,0.08) 0%, transparent 60%),
+      #020617;
+    min-height: 100vh;
+  }
+
+  /* ---- Status pulses & telemetry chips (Module spec) ---- */
+  .status-dot {
+    @apply relative inline-flex h-2.5 w-2.5 rounded-full;
+  }
+  .status-dot::after {
+    content: "";
+    @apply absolute inset-0 rounded-full animate-ping;
+    background: inherit;
+    opacity: 0.6;
+  }
+  .telemetry-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] text-muted backdrop-blur-md;
   }
 }

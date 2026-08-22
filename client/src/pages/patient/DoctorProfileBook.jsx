@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Star, IndianRupee, Clock } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
+import BookingForPicker from "../../components/BookingForPicker.jsx";
 import api from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
@@ -31,6 +32,7 @@ export default function DoctorProfileBook() {
   const [reviews, setReviews] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [reason, setReason] = useState("");
+  const [bookingFor, setBookingFor] = useState({ type: "self" });
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState("");
 
@@ -52,7 +54,13 @@ export default function DoctorProfileBook() {
         scheduledStart: selectedSlot.toISOString(),
         reasonForVisit: reason,
         paymentMethod: "razorpay",
+        bookingFor,
       });
+
+      if (data.devMode) {
+        // No real Razorpay account configured -- payment was auto-captured server-side.
+        return navigate(`/patient/appointments/${data.appointment._id}`);
+      }
 
       // Launch Razorpay checkout for the consultation fee.
       const options = {
@@ -135,11 +143,15 @@ export default function DoctorProfileBook() {
           </div>
 
           <div className="mt-6">
+            <BookingForPicker value={bookingFor} onChange={setBookingFor} />
+          </div>
+
+          <div className="mt-6">
             <label className="label">Reason for visit (optional)</label>
             <textarea className="input" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} />
           </div>
 
-          {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && <p className="mt-3 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent backdrop-blur-md">{error}</p>}
 
           <button disabled={!selectedSlot || booking} onClick={confirmBooking} className="btn-primary mt-6 w-full">
             {booking ? "Preparing checkout..." : `Book & pay ₹${profile.consultationFee}`}

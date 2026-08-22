@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import api from "../../services/api.js";
 
-const TONE = { pending_payment: "amber", confirmed: "green", in_progress: "coral", completed: "gray", cancelled: "red", no_show: "red" };
+const TONE = { pending_payment: "pending", confirmed: "success", in_progress: "processing", completed: "gray", cancelled: "danger", no_show: "danger" };
 
 export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);

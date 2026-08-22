@@ -62,6 +62,10 @@ export default function OrderMedicines() {
         return navigate(`/patient/orders/${data.order._id}`);
       }
 
+      if (data.devMode) {
+        return navigate(`/patient/orders/${data.order._id}`);
+      }
+
       const options = {
         key: data.razorpayKeyId,
         amount: data.amount,
@@ -142,7 +146,7 @@ export default function OrderMedicines() {
             <div className="mt-2 flex justify-between border-t border-line pt-2 font-semibold"><span>Total</span><span>₹{total}</span></div>
           </div>
 
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && <p className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent backdrop-blur-md">{error}</p>}
 
           <button disabled={placing} className="btn-primary w-full"><Truck size={16} /> {placing ? "Placing order..." : `Place order · ₹${total}`}</button>
         </form>

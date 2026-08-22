@@ -1,38 +1,111 @@
-/**
- * KapHealth's signature element: an ECG pulse line that resolves into a
- * checkmark. Used as a section divider throughout the app (instead of a
- * plain hairline) to encode the product's real arc -- vital signs in,
- * confirmed outcome out -- and reused as a loading motif during
- * booking/payment transitions.
- */
-export default function PulseDivider({ className = "", animated = false }) {
+export default function PulseDivider({
+  className = "",
+  animated = false,
+}) {
   return (
-    <div className={`w-full ${className}`} aria-hidden="true">
-      <svg viewBox="0 0 600 40" width="100%" height="40" preserveAspectRatio="none">
+    <div
+      className={`relative w-full overflow-hidden ${className}`}
+      aria-hidden="true"
+    >
+      <svg
+        viewBox="0 0 1200 80"
+        width="100%"
+        height="60"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient
+            id="pulseGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+          >
+            <stop offset="0%" stopColor="#10B981" />
+            <stop offset="50%" stopColor="#0F766E" />
+            <stop offset="100%" stopColor="#14B8A6" />
+          </linearGradient>
+
+          <filter id="pulseGlow">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Background Line */}
+
         <path
-          d="M0 20 H210 L225 6 L240 34 L255 20 H320 L335 4 L352 20 H420 L432 12 L444 28 L456 20 H600"
+          d="M0 40 H1200"
+          stroke="#E5E7EB"
+          strokeWidth="1"
+        />
+
+        {/* ECG */}
+
+        <path
+          d="
+          M0 40
+          H220
+          L245 15
+          L270 65
+          L295 40
+          H430
+          L455 8
+          L485 40
+          H650
+          L675 20
+          L700 58
+          L725 40
+          H880
+          L905 28
+          L930 50
+          L955 40
+          H1200
+          "
           fill="none"
-          stroke="#0F6E5B"
-          strokeWidth="2"
+          stroke="url(#pulseGradient)"
+          strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={animated ? "pulse-path" : ""}
-          opacity="0.85"
+          filter="url(#pulseGlow)"
+          className={animated ? "kap-pulse" : ""}
         />
+
+        {/* Check Mark */}
+
         <path
-          d="M470 20 L490 32 L522 4"
+          d="M1010 40 L1040 60 L1085 15"
           fill="none"
-          stroke="#FF6B4A"
-          strokeWidth="3.5"
+          stroke="#F97316"
+          strokeWidth="5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </svg>
+
       {animated && (
         <style>{`
-          .pulse-path { stroke-dasharray: 700; stroke-dashoffset: 700; animation: kap-draw 1.6s ease forwards; }
-          @keyframes kap-draw { to { stroke-dashoffset: 0; } }
-          @media (prefers-reduced-motion: reduce) { .pulse-path { animation: none; stroke-dashoffset: 0; } }
+          .kap-pulse{
+            stroke-dasharray:1600;
+            stroke-dashoffset:1600;
+            animation:drawPulse 2s ease forwards;
+          }
+
+          @keyframes drawPulse{
+            to{
+              stroke-dashoffset:0;
+            }
+          }
+
+          @media(prefers-reduced-motion:reduce){
+            .kap-pulse{
+              animation:none;
+              stroke-dashoffset:0;
+            }
+          }
         `}</style>
       )}
     </div>

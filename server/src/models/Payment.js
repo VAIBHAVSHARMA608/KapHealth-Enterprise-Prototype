@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const paymentSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    purpose: { type: String, enum: ["appointment", "order"], required: true },
+    purpose: { type: String, enum: ["appointment", "order", "lab_booking"], required: true },
     referenceId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Appointment or Order id
 
     amount: { type: Number, required: true },

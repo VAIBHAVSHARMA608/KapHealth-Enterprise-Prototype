@@ -1,66 +1,294 @@
 import { useEffect, useState } from "react";
+import {
+  Package,
+  IndianRupee,
+  CreditCard,
+  Truck,
+} from "lucide-react";
 import { useAdminAuth } from "../../context/AdminAuthContext.jsx";
 
-const STATUSES = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled", "returned"];
+const STATUSES = [
+  "placed",
+  "confirmed",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+  "cancelled",
+  "returned",
+];
+
+const STATUS_COLOR = {
+  placed: "bg-blue-100 text-blue-700",
+  confirmed: "bg-cyan-100 text-cyan-700",
+  packed: "bg-amber-100 text-amber-700",
+  shipped: "bg-indigo-100 text-indigo-700",
+  out_for_delivery: "bg-purple-100 text-purple-700",
+  delivered: "bg-emerald-100 text-emerald-700",
+  cancelled: "bg-red-100 text-red-700",
+  returned: "bg-slate-200 text-slate-700",
+};
 
 export default function AdminOrders() {
   const { adminApi } = useAdminAuth();
+
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("");
 
   function load() {
-    adminApi.get("/orders", { params: filter ? { status: filter } : {} }).then(({ data }) => setOrders(data.orders));
+    adminApi
+      .get("/orders", {
+        params: filter ? { status: filter } : {},
+      })
+      .then(({ data }) => setOrders(data.orders));
   }
+
   useEffect(load, [adminApi, filter]);
 
   async function updateStatus(id, status) {
-    let extra = {};
+    const extra = {};
+
     if (status === "shipped") {
-      extra.courierName = window.prompt("Courier name?") || "";
-      extra.trackingId = window.prompt("Tracking ID?") || "";
+      extra.courierName =
+        window.prompt("Courier Name") || "";
+      extra.trackingId =
+        window.prompt("Tracking ID") || "";
     }
-    await adminApi.patch(`/orders/${id}/status`, { status, ...extra });
+
+    await adminApi.patch(
+      `/orders/${id}/status`,
+      {
+        status,
+        ...extra,
+      }
+    );
+
     load();
   }
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-medium">Orders</h1>
-      <select className="input mt-4 max-w-xs" value={filter} onChange={(e) => setFilter(e.target.value)}>
-        <option value="">All statuses</option>
-        {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-      </select>
+    <div className="space-y-8">
 
-      <div className="mt-6 overflow-x-auto rounded-xl2 border border-line bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-line bg-black/[0.02] text-xs uppercase text-muted">
-            <tr>
-              <th className="px-4 py-3">Order</th>
-              <th className="px-4 py-3">Patient</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Payment</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Update</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => (
-              <tr key={o._id} className="border-b border-line last:border-0">
-                <td className="px-4 py-3 font-mono">{o.orderNumber}</td>
-                <td className="px-4 py-3">{o.patient?.name}</td>
-                <td className="px-4 py-3">₹{o.total}</td>
-                <td className="px-4 py-3">{o.paymentMethod} · {o.paymentStatus}</td>
-                <td className="px-4 py-3 capitalize">{o.status.replace(/_/g, " ")}</td>
-                <td className="px-4 py-3">
-                  <select className="input !py-1.5 text-xs" value={o.status} onChange={(e) => updateStatus(o._id, e.target.value)}>
-                    {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Header */}
+
+      <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-500 p-8 text-white shadow-xl">
+
+        <div className="flex items-center gap-4">
+
+          <Package size={36} />
+
+          <div>
+
+            <h1 className="text-3xl font-bold">
+              Order Management
+            </h1>
+
+            <p className="mt-2 text-white/80">
+              Track and manage medicine
+              orders in real-time.
+            </p>
+
+          </div>
+
+        </div>
+
       </div>
+
+      {/* Filter */}
+
+      <div className="rounded-2xl border bg-white p-5 shadow-sm">
+
+        <label className="mb-2 block text-sm font-medium text-slate-600">
+          Filter by Status
+        </label>
+
+        <select
+          className="w-full max-w-xs rounded-xl border border-slate-300 p-3 outline-none transition focus:border-emerald-500"
+          value={filter}
+          onChange={(e) =>
+            setFilter(e.target.value)
+          }
+        >
+          <option value="">
+            All Orders
+          </option>
+
+          {STATUSES.map((status) => (
+            <option
+              key={status}
+              value={status}
+            >
+              {status.replaceAll("_", " ")}
+            </option>
+          ))}
+        </select>
+
+      </div>
+
+      {/* Table */}
+
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+        <div className="overflow-x-auto">
+
+          <table className="min-w-full">
+
+            <thead className="bg-slate-50">
+
+              <tr className="text-left text-sm font-semibold text-slate-600">
+
+                <th className="px-6 py-4">
+                  Order ID
+                </th>
+
+                <th className="px-6 py-4">
+                  Patient
+                </th>
+
+                <th className="px-6 py-4">
+                  Total
+                </th>
+
+                <th className="px-6 py-4">
+                  Payment
+                </th>
+
+                <th className="px-6 py-4">
+                  Status
+                </th>
+
+                <th className="px-6 py-4">
+                  Update
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {orders.map((order) => (
+
+                <tr
+                  key={order._id}
+                  className="border-t transition hover:bg-slate-50"
+                >
+
+                  <td className="px-6 py-5 font-mono text-sm font-semibold">
+                    {order.orderNumber}
+                  </td>
+
+                  <td className="px-6 py-5">
+
+                    <div className="font-medium">
+                      {order.patient?.name}
+                    </div>
+
+                  </td>
+
+                  <td className="px-6 py-5">
+
+                    <div className="flex items-center gap-1">
+
+                      <IndianRupee size={15} />
+
+                      {order.total}
+
+                    </div>
+
+                  </td>
+
+                  <td className="px-6 py-5">
+
+                    <div className="flex items-center gap-2">
+
+                      <CreditCard size={16} />
+
+                      <span>
+
+                        {order.paymentMethod}
+
+                      </span>
+
+                    </div>
+
+                    <span className="mt-1 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs capitalize">
+
+                      {order.paymentStatus}
+
+                    </span>
+
+                  </td>
+
+                  <td className="px-6 py-5">
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                        STATUS_COLOR[
+                          order.status
+                        ]
+                      }`}
+                    >
+                      {order.status.replaceAll(
+                        "_",
+                        " "
+                      )}
+                    </span>
+
+                  </td>
+
+                  <td className="px-6 py-5">
+
+                    <div className="flex items-center gap-2">
+
+                      <Truck
+                        size={16}
+                        className="text-slate-400"
+                      />
+
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          updateStatus(
+                            order._id,
+                            e.target.value
+                          )
+                        }
+                        className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-emerald-500"
+                      >
+
+                        {STATUSES.map((status) => (
+
+                          <option
+                            key={status}
+                            value={status}
+                          >
+                            {status.replaceAll(
+                              "_",
+                              " "
+                            )}
+                          </option>
+
+                        ))}
+
+                      </select>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
     </div>
   );
 }

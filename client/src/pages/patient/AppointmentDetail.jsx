@@ -6,8 +6,8 @@ import StatusBadge from "../../components/StatusBadge.jsx";
 import api from "../../services/api.js";
 
 const STATUS_TONE = {
-  pending_payment: "amber", confirmed: "green", in_progress: "coral",
-  completed: "gray", cancelled: "red", no_show: "red",
+  pending_payment: "pending", confirmed: "success", in_progress: "processing",
+  completed: "gray", cancelled: "danger", no_show: "danger",
 };
 
 export default function AppointmentDetail() {

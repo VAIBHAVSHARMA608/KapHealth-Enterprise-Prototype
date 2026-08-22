@@ -42,5 +42,6 @@ router.post(
   ctrl.submitOnboarding
 );
 router.get("/me/profile", requireAuth, requireRole("doctor"), ctrl.getMyProfile);
+router.get("/me/earnings", requireAuth, requireRole("doctor"), ctrl.getMyEarnings);
 
 module.exports = router;

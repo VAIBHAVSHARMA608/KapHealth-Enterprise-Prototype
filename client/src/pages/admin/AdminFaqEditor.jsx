@@ -1,24 +1,44 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  HelpCircle,
+  BookOpen,
+} from "lucide-react";
 import { useAdminAuth } from "../../context/AdminAuthContext.jsx";
 
 export default function AdminFaqEditor() {
   const { adminApi } = useAdminAuth();
+
   const [faqs, setFaqs] = useState([]);
-  const [form, setForm] = useState({ audience: "both", question: "", answer: "", category: "general" });
+
+  const [form, setForm] = useState({
+    audience: "both",
+    question: "",
+    answer: "",
+    category: "general",
+  });
 
   function load() {
-    // Admin FAQ list reuses the public endpoint's shape but via own controller would be nicer;
-    // for the demo we fetch through the public /api/faqs (published only) merged with admin CRUD.
-    adminApi.get("/dashboard").catch(() => {}); // no-op warmup call, harmless
-    fetch("/api/faqs?audience=both").then((r) => r.json()).then((d) => setFaqs(d.faqs));
+    fetch("/api/faqs?audience=both")
+      .then((r) => r.json())
+      .then((d) => setFaqs(d.faqs));
   }
-  useEffect(load, [adminApi]);
+
+  useEffect(load, []);
 
   async function createFaq(e) {
     e.preventDefault();
+
     await adminApi.post("/faqs", form);
-    setForm({ audience: "both", question: "", answer: "", category: "general" });
+
+    setForm({
+      audience: "both",
+      question: "",
+      answer: "",
+      category: "general",
+    });
+
     load();
   }
 
@@ -28,34 +48,196 @@ export default function AdminFaqEditor() {
   }
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-medium">FAQ editor</h1>
+    <div className="space-y-8">
 
-      <form onSubmit={createFaq} className="card mt-6 space-y-3 p-5">
-        <div className="grid grid-cols-2 gap-3">
-          <select className="input" value={form.audience} onChange={(e) => setForm({ ...form, audience: e.target.value })}>
-            <option value="both">Both</option>
-            <option value="patient">Patients only</option>
-            <option value="doctor">Doctors only</option>
-          </select>
-          <input className="input" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+      {/* Header */}
+
+      <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-500 p-8 text-white shadow-xl">
+
+        <div className="flex items-center gap-4">
+
+          <HelpCircle size={34} />
+
+          <div>
+
+            <h1 className="text-3xl font-bold">
+              FAQ Management
+            </h1>
+
+            <p className="mt-2 text-white/80">
+              Create, edit and manage help articles.
+            </p>
+
+          </div>
+
         </div>
-        <input className="input" placeholder="Question" required value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} />
-        <textarea className="input" placeholder="Answer" rows={2} required value={form.answer} onChange={(e) => setForm({ ...form, answer: e.target.value })} />
-        <button className="btn-primary"><Plus size={16} /> Add FAQ</button>
+
+      </div>
+
+      {/* Form */}
+
+      <form
+        onSubmit={createFaq}
+        className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
+
+        <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+
+          <Plus size={20} />
+
+          Add New FAQ
+
+        </h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+
+          <select
+            className="rounded-xl border p-3 outline-none focus:border-emerald-500"
+            value={form.audience}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                audience: e.target.value,
+              })
+            }
+          >
+            <option value="both">Both</option>
+            <option value="patient">
+              Patients
+            </option>
+            <option value="doctor">
+              Doctors
+            </option>
+          </select>
+
+          <input
+            className="rounded-xl border p-3 outline-none focus:border-emerald-500"
+            placeholder="Category"
+            value={form.category}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                category: e.target.value,
+              })
+            }
+          />
+
+        </div>
+
+        <input
+          className="mt-4 w-full rounded-xl border p-3 outline-none focus:border-emerald-500"
+          placeholder="Question"
+          required
+          value={form.question}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              question: e.target.value,
+            })
+          }
+        />
+
+        <textarea
+          rows={4}
+          className="mt-4 w-full rounded-xl border p-3 outline-none focus:border-emerald-500"
+          placeholder="Answer"
+          required
+          value={form.answer}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              answer: e.target.value,
+            })
+          }
+        />
+
+        <button className="mt-5 flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 font-medium text-white transition hover:bg-emerald-700">
+
+          <Plus size={18} />
+
+          Add FAQ
+
+        </button>
+
       </form>
 
-      <div className="mt-6 space-y-2">
-        {faqs.map((f) => (
-          <div key={f._id} className="card flex items-start justify-between p-4">
-            <div>
-              <p className="text-sm font-medium">{f.question}</p>
-              <p className="text-xs text-muted">{f.answer}</p>
+      {/* FAQ List */}
+
+      {faqs.length === 0 ? (
+
+        <div className="rounded-3xl border bg-white py-20 text-center shadow-sm">
+
+          <BookOpen
+            size={60}
+            className="mx-auto text-slate-300"
+          />
+
+          <h2 className="mt-5 text-xl font-semibold">
+            No FAQs Available
+          </h2>
+
+          <p className="mt-2 text-slate-500">
+            Create your first FAQ.
+          </p>
+
+        </div>
+
+      ) : (
+
+        <div className="space-y-4">
+
+          {faqs.map((faq) => (
+
+            <div
+              key={faq._id}
+              className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-lg"
+            >
+
+              <div className="flex items-start justify-between gap-4">
+
+                <div className="flex-1">
+
+                  <h3 className="font-semibold text-slate-800">
+                    {faq.question}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {faq.answer}
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      {faq.category}
+                    </span>
+
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 capitalize">
+                      {faq.audience}
+                    </span>
+
+                  </div>
+
+                </div>
+
+                <button
+                  onClick={() =>
+                    removeFaq(faq._id)
+                  }
+                  className="rounded-xl bg-red-100 p-3 text-red-600 transition hover:bg-red-500 hover:text-white"
+                >
+                  <Trash2 size={18} />
+                </button>
+
+              </div>
+
             </div>
-            <button onClick={() => removeFaq(f._id)} className="shrink-0 text-red-500"><Trash2 size={16} /></button>
-          </div>
-        ))}
-      </div>
+
+          ))}
+
+        </div>
+
+      )}
+
     </div>
   );
 }

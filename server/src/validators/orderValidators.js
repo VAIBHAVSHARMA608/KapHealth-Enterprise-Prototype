@@ -21,4 +21,16 @@ const placeOrderSchema = z.object({
   paymentMethod: z.enum(["cod", "online"]),
 });
 
-module.exports = { placeOrderSchema };
+const checkoutCartSchema = z.object({
+  deliveryAddress: z.object({
+    line1: z.string().min(2),
+    line2: z.string().optional(),
+    city: z.string().min(2),
+    state: z.string().min(2),
+    pincode: z.string().min(4),
+    phone: z.string().min(6),
+  }),
+  paymentMethod: z.enum(["cod", "online"]),
+});
+
+module.exports = { placeOrderSchema, checkoutCartSchema };

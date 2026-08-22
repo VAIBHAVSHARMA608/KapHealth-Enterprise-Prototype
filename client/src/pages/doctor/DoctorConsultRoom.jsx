@@ -10,6 +10,7 @@ import { getAccessToken } from "../../services/api.js";
 import api from "../../services/api.js";
 
 const emptyMedicine = () => ({ name: "", dosage: "", frequency: "", durationDays: 5, instructions: "" });
+const FREQUENCY_PRESETS = ["1-0-0", "0-1-0", "0-0-1", "1-0-1", "1-1-1", "0-0-1 at night"];
 
 export default function DoctorConsultRoom() {
   const { id } = useParams();
@@ -89,7 +90,7 @@ export default function DoctorConsultRoom() {
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
           <form onSubmit={issuePrescription} className="card max-h-[85vh] w-full max-w-lg overflow-y-auto p-6">
             <h2 className="font-display text-lg font-medium">e-Prescription for {appointment.patient.name}</h2>
-            {error && <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+            {error && <p className="mt-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm text-accent backdrop-blur-md">{error}</p>}
 
             <label className="label mt-4">Diagnosis</label>
             <input className="input" value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} />
@@ -101,12 +102,26 @@ export default function DoctorConsultRoom() {
                   <div className="grid grid-cols-2 gap-2">
                     <input className="input" placeholder="Name" value={m.name} onChange={(e) => updateMedicine(i, "name", e.target.value)} />
                     <input className="input" placeholder="Dosage e.g. 500mg" value={m.dosage} onChange={(e) => updateMedicine(i, "dosage", e.target.value)} />
-                    <input className="input" placeholder="Frequency e.g. 1-0-1" value={m.frequency} onChange={(e) => updateMedicine(i, "frequency", e.target.value)} />
-                    <input type="number" className="input" placeholder="Days" value={m.durationDays} onChange={(e) => updateMedicine(i, "durationDays", Number(e.target.value))} />
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {FREQUENCY_PRESETS.map((f) => (
+                      <button
+                        type="button"
+                        key={f}
+                        onClick={() => updateMedicine(i, "frequency", f)}
+                        className={`rounded-full border px-2.5 py-1 font-mono text-[11px] transition ${m.frequency === f ? "border-primary bg-primary/15 text-primary-dark" : "border-white/10 bg-white/5 text-muted hover:text-ink"}`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <input className="input" placeholder="Custom frequency" value={m.frequency} onChange={(e) => updateMedicine(i, "frequency", e.target.value)} />
+                    <input type="number" className="input" placeholder="Duration (days)" value={m.durationDays} onChange={(e) => updateMedicine(i, "durationDays", Number(e.target.value))} />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <input className="input" placeholder="Instructions (optional)" value={m.instructions} onChange={(e) => updateMedicine(i, "instructions", e.target.value)} />
-                    <button type="button" onClick={() => setMedicines((ms) => ms.filter((_, idx) => idx !== i))} className="shrink-0 text-red-500"><Trash2 size={16} /></button>
+                    <input className="input" placeholder="Instructions (e.g. After food)" value={m.instructions} onChange={(e) => updateMedicine(i, "instructions", e.target.value)} />
+                    <button type="button" onClick={() => setMedicines((ms) => ms.filter((_, idx) => idx !== i))} className="shrink-0 text-accent"><Trash2 size={16} /></button>
                   </div>
                 </div>
               ))}

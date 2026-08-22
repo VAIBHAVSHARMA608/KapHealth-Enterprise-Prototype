@@ -6,4 +6,9 @@ function generateOrderNumber() {
   return `KAP-${year}-${nanoid()}`;
 }
 
-module.exports = { generateOrderNumber };
+function generateLabBookingNumber() {
+  const year = new Date().getFullYear();
+  return `KAP-LAB-${year}-${nanoid()}`;
+}
+
+module.exports = { generateOrderNumber, generateLabBookingNumber };

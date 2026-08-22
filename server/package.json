@@ -8,7 +8,10 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed:admin": "node src/seed/createAdmin.js"
+    "seed:admin": "node src/seed/createAdmin.js",
+    "seed:demo": "node src/seed/seedDemoData.js",
+    "seed:test": "node src/seed/seedTestData.js",
+    "seed:wellness": "node src/seed/seedWellnessData.js"
   },
   "dependencies": {
     "axios": "^1.7.7",
@@ -21,6 +24,7 @@
     "express-rate-limit": "^7.4.0",
     "google-auth-library": "^9.14.1",
     "helmet": "^7.1.0",
+    "init": "^0.1.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
     "morgan": "^1.10.0",
@@ -29,6 +33,7 @@
     "pdfkit": "^0.15.0",
     "razorpay": "^2.9.4",
     "socket.io": "^4.7.5",
+    "twilio": "^6.0.2",
     "uuid": "^14.0.1",
     "xss-clean": "^0.1.4",
     "zod": "^3.23.8"

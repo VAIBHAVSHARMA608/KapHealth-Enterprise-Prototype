@@ -3,6 +3,7 @@ const Appointment = require("../models/Appointment");
 const DoctorProfile = require("../models/DoctorProfile");
 const User = require("../models/User");
 const { generatePrescriptionPdf } = require("../utils/generatePrescriptionPdf");
+const { notify } = require("../utils/notify");
 
 /** Doctor issues an e-prescription at the end of (or during) a video consult. */
 async function createPrescription(req, res, next) {
@@ -37,6 +38,17 @@ async function createPrescription(req, res, next) {
     appointment.status = "completed";
     if (!appointment.callEndedAt) appointment.callEndedAt = new Date();
     await appointment.save();
+
+    await notify({
+      user: appointment.patient,
+      type: "prescription_ready",
+      title: "Your e-prescription is ready",
+      message: `Dr. ${doctor?.name || ""} has issued your prescription. You can view or order the medicines now.`,
+      relatedType: "prescription",
+      relatedId: prescription._id,
+      channels: { email: true },
+      email: patient?.email,
+    });
 
     res.status(201).json({ prescription });
   } catch (err) {

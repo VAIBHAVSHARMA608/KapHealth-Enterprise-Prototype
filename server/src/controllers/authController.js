@@ -27,7 +27,14 @@ function issueTokens(res, user) {
 /** STEP 1: request a WhatsApp OTP for login or signup */
 async function requestOtp(req, res, next) {
   try {
-    const { phone, purpose } = req.body;
+    const { phone, purpose, role } = req.body;
+
+    const existing = await User.findOne({ phone });
+    if (existing && role && existing.role !== role) {
+      return res.status(409).json({
+        message: `This phone number is already registered as a ${existing.role}. Log in as a ${existing.role}, or use a different number to register as a ${role}.`,
+      });
+    }
 
     const code = generateOtpCode();
     const codeHash = await hashOtp(code);
@@ -78,10 +85,24 @@ async function verifyOtp(req, res, next) {
       if (user.role === "patient") {
         await PatientProfile.create({ user: user._id });
       }
+    } else if (role && user.role !== role) {
+      // This phone is already registered under a different role -- do NOT
+      // silently log them into the wrong account. Without this check a
+      // patient picking "doctor" on signup (or vice versa) on an already-used
+      // number would just get logged into their existing account with no
+      // error and no onboarding, which looks like "doctor registration is
+      // broken" from the outside.
+      return res.status(409).json({
+        message: `This phone number is already registered as a ${user.role}. Log in as a ${user.role}, or use a different number to register as a ${role}.`,
+      });
     } else if (!user.isPhoneVerified) {
       user.isPhoneVerified = true;
       user.authProviders.whatsapp = true;
       await user.save();
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({ message: `This account is ${user.status}. Contact support if you think this is a mistake.` });
     }
 
     user.lastLoginAt = new Date();
@@ -128,10 +149,18 @@ async function googleLogin(req, res, next) {
       if (user.role === "patient") {
         await PatientProfile.create({ user: user._id });
       }
+    } else if (role && user.role !== role) {
+      return res.status(409).json({
+        message: `This Google account is already registered as a ${user.role}. Log in as a ${user.role}, or use a different Google account to register as a ${role}.`,
+      });
     } else if (!user.googleId) {
       user.googleId = payload.sub;
       user.authProviders.google = true;
       await user.save();
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({ message: `This account is ${user.status}. Contact support if you think this is a mistake.` });
     }
 
     user.lastLoginAt = new Date();
@@ -179,11 +208,90 @@ async function adminLogin(req, res, next) {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
+    if (user.status !== "active") {
+      return res.status(403).json({ message: `This account is ${user.status}.` });
+    }
+
     user.lastLoginAt = new Date();
     await user.save();
 
     const accessToken = issueTokens(res, user);
     res.json({ accessToken, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Dev/test-only credential login for patient & doctor test accounts (set up
+ * by seed:test). Bypasses WhatsApp OTP entirely so QA/testing doesn't depend
+ * on a Twilio account. Disabled by setting ENABLE_TEST_LOGIN=false in .env
+ * before any real deployment.
+ */
+async function testLogin(req, res, next) {
+  try {
+    if (process.env.ENABLE_TEST_LOGIN === "false") {
+      return res.status(404).json({ message: "Not found" });
+    }
+    const { identifier, password } = req.body;
+    const isEmail = identifier.includes("@");
+    const lookup = isEmail
+      ? { email: identifier.toLowerCase() }
+      : { phone: identifier };
+
+    let user = await User.findOne(lookup).select("+passwordHash");
+
+    // Auto-provisions the admin account from ADMIN_SEED_EMAIL/PASSWORD on
+    // first use, so you don't have to also run `npm run seed:admin`.
+    // Deliberately a ONE-TIME bootstrap: it only fires while zero admin
+    // accounts exist anywhere in the system. Once any admin exists, this
+    // branch is permanently dead -- it can't be used as a standing way to
+    // mint new admins later, even by someone who knows the seed env values.
+    const isAdminSeedLogin =
+      !user &&
+      process.env.ADMIN_SEED_EMAIL &&
+      process.env.ADMIN_SEED_PASSWORD &&
+      isEmail &&
+      identifier.toLowerCase() === process.env.ADMIN_SEED_EMAIL.toLowerCase() &&
+      password === process.env.ADMIN_SEED_PASSWORD &&
+      !(await User.exists({ role: "admin" }));
+
+    if (!user) {
+      if (isAdminSeedLogin) {
+        const passwordHash = await bcrypt.hash(password, 12);
+        user = await User.create({
+          name: "KapHealth Admin",
+          email: identifier.toLowerCase(),
+          passwordHash,
+          role: "admin",
+          isEmailVerified: true,
+          authProviders: { password: true },
+        });
+      } else {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+    }
+
+    if (!user.passwordHash) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (user.status !== "active") {
+      return res.status(403).json({ message: `This account is ${user.status}.` });
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save();
+
+    const accessToken = issueTokens(res, user);
+    res.json({
+      accessToken,
+      isNewUser: false,
+      user: { id: user._id, name: user.name, phone: user.phone, email: user.email, role: user.role },
+    });
   } catch (err) {
     next(err);
   }
@@ -198,4 +306,4 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { requestOtp, verifyOtp, googleLogin, refresh, logout, adminLogin, me };
+module.exports = { requestOtp, verifyOtp, googleLogin, refresh, logout, adminLogin, testLogin, me };

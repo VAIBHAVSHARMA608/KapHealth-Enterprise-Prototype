@@ -1,9 +1,11 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const http = require("http");
 const app = require("./app");
 const connectDB = require("./config/db");
 const { assertEnv } = require("./config/env");
 const { initVideoChatSocket } = require("./sockets/videoChat");
+const { startAppointmentReminderJob } = require("./jobs/appointmentReminders");
 
 assertEnv();
 
@@ -14,6 +16,7 @@ async function start() {
 
   const httpServer = http.createServer(app);
   initVideoChatSocket(httpServer);
+  startAppointmentReminderJob();
 
   httpServer.listen(PORT, () => {
     console.log(`[server] KapHealth API listening on port ${PORT}`);

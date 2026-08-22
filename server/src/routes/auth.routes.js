@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const ctrl = require("../controllers/authController");
 const { validateBody } = require("../validators/validate");
-const { requestOtpSchema, verifyOtpSchema, googleAuthSchema, adminLoginSchema } = require("../validators/authValidators");
+const { requestOtpSchema, verifyOtpSchema, googleAuthSchema, adminLoginSchema, testLoginSchema } = require("../validators/authValidators");
 const { requireAuth } = require("../middleware/auth");
 const { otpLimiter, adminLoginLimiter } = require("../middleware/rateLimiters");
 
@@ -11,6 +11,10 @@ router.post("/google", validateBody(googleAuthSchema), ctrl.googleLogin);
 router.post("/refresh", ctrl.refresh);
 router.post("/logout", ctrl.logout);
 router.get("/me", requireAuth, ctrl.me);
+
+// Dev/test-only: phone+password login for seeded patient/doctor test accounts
+// (see seed:test). Disable in real deployments by setting ENABLE_TEST_LOGIN=false.
+router.post("/test-login", adminLoginLimiter, validateBody(testLoginSchema), ctrl.testLogin);
 
 // Admin credential login lives here too (still gated by ADMIN_ACCESS_KEY at the /api/admin layer for everything after login)
 router.post("/admin-login", adminLoginLimiter, validateBody(adminLoginSchema), ctrl.adminLogin);

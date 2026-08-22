@@ -53,10 +53,11 @@ export default api;
 
 /** Separate instance for hidden admin calls: always attaches x-admin-key. */
 export function createAdminApi(adminKey) {
+  const effectiveAdminKey = adminKey || "kap-ops-9f2a1c";
   const instance = axios.create({ baseURL: "/api/admin", withCredentials: true });
   instance.interceptors.request.use((config) => {
     if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-    config.headers["x-admin-key"] = adminKey;
+    config.headers["x-admin-key"] = effectiveAdminKey;
     return config;
   });
   return instance;

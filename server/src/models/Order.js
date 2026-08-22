@@ -19,7 +19,10 @@ const orderSchema = new mongoose.Schema(
   {
     orderNumber: { type: String, required: true, unique: true }, // e.g. KAP-2026-000123
     patient: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    prescription: { type: mongoose.Schema.Types.ObjectId, ref: "Prescription", required: true },
+    // Optional: only prescription-drug orders reference one. Pure OTC/essentials
+    // cart checkouts (orderSource: "store") have no prescription at all.
+    prescription: { type: mongoose.Schema.Types.ObjectId, ref: "Prescription" },
+    orderSource: { type: String, enum: ["prescription", "store"], default: "prescription", index: true },
 
     items: [
       {
@@ -29,6 +32,8 @@ const orderSchema = new mongoose.Schema(
         unitPrice: { type: Number, required: true },
       },
     ],
+
+    couponCode: { type: String },
 
     deliveryAddress: {
       line1: String,
@@ -63,6 +68,7 @@ const orderSchema = new mongoose.Schema(
 
     courierName: { type: String },
     trackingId: { type: String },
+    deliveryOtp: { type: String }, // 4-digit code the patient shares with the rider on physical receipt
     estimatedDeliveryDate: { type: Date },
     deliveredAt: { type: Date },
 
