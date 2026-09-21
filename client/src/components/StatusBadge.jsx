@@ -8,44 +8,44 @@ import {
 
 const STATUS = {
   success: {
-    bg: "bg-status-success/15 border border-status-success/30",
-    text: "text-status-success",
+    bg: "bg-emerald-100",
+    text: "text-emerald-700",
     icon: CheckCircle2,
   },
 
   pending: {
-    bg: "bg-status-pending/15 border border-status-pending/30",
-    text: "text-status-pending",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
     icon: Clock3,
   },
 
   warning: {
-    bg: "bg-status-pending/15 border border-status-pending/30",
-    text: "text-status-pending",
+    bg: "bg-yellow-100",
+    text: "text-yellow-700",
     icon: AlertTriangle,
   },
 
   danger: {
-    bg: "bg-accent/15 border border-accent/30",
-    text: "text-accent",
+    bg: "bg-red-100",
+    text: "text-red-700",
     icon: XCircle,
   },
 
   processing: {
-    bg: "bg-status-active/15 border border-status-active/30",
-    text: "text-status-active",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
     icon: Loader2,
   },
 
   info: {
-    bg: "bg-status-active/15 border border-status-active/30",
-    text: "text-status-active",
+    bg: "bg-cyan-100",
+    text: "text-cyan-700",
     icon: Clock3,
   },
 
   gray: {
-    bg: "bg-white/5 border border-white/10",
-    text: "text-muted",
+    bg: "bg-slate-100",
+    text: "text-slate-600",
     icon: Clock3,
   },
 };

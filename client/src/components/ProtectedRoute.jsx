@@ -9,18 +9,18 @@ export function ProtectedRoute({ children, role }) {
   // Loading State
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-6">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
         <div className="text-center">
 
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
 
-          <h2 className="text-xl font-semibold text-ink">
+          <h2 className="text-xl font-semibold text-slate-800">
             Loading...
           </h2>
 
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-sm text-slate-500">
             Please wait while we securely load your account.
           </p>
 
