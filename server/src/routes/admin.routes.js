@@ -6,6 +6,9 @@ const { requireAdminKey } = require("../middleware/adminGate");
 // Every route here is behind: valid JWT -> role==="admin" -> secret x-admin-key header.
 router.use(requireAuth, requireRole("admin"), requireAdminKey);
 
+// Keep the protected admin root useful for clients that probe the namespace
+// before loading a specific console section.
+router.get("/", ctrl.getDashboardStats);
 router.get("/dashboard", ctrl.getDashboardStats);
 
 router.get("/doctors", ctrl.listDoctorApplications);

@@ -10,9 +10,9 @@ import {
   ChevronRight,
   Droplets,
   HeartPulse,
-  Height,
   Info,
   LockKeyhole,
+  Ruler,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -612,7 +612,7 @@ export default function PatientOnboarding() {
 
                     <Field label="Height (cm)">
                       <div className="relative">
-                        <Height
+                        <Ruler
                           size={16}
                           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                         />

@@ -34,11 +34,23 @@ const app = express();
 
 app.set("trust proxy", 1);
 
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:5173",
+  process.env.ADMIN_CLIENT_URL || "http://localhost:5174",
+];
+
 // ---- Security middleware ----
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true,
   })
 );

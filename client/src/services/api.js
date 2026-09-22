@@ -6,7 +6,8 @@ import axios from "axios";
  * On a 401 we try one silent refresh before giving up, so short-lived access
  * tokens don't force the user to re-login constantly.
  */
-const api = axios.create({ baseURL: "/api", withCredentials: true });
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const api = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
 
 let accessToken = null;
 let onUnauthorized = () => {};
@@ -31,7 +32,9 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retried) {
+    const requestPath = original?.url || "";
+    const isAuthRequest = requestPath.includes("/auth/");
+    if (error.response?.status === 401 && !isAuthRequest && !original._retried) {
       original._retried = true;
       try {
         refreshPromise = refreshPromise || api.post("/auth/refresh");
@@ -53,11 +56,11 @@ export default api;
 
 /** Separate instance for hidden admin calls: always attaches x-admin-key. */
 export function createAdminApi(adminKey) {
-  const effectiveAdminKey = adminKey || "kap-ops-9f2a1c";
-  const instance = axios.create({ baseURL: "/api/admin", withCredentials: true });
+  if (!adminKey) throw new Error("createAdminApi requires an admin key.");
+  const instance = axios.create({ baseURL: `${API_BASE_URL}/admin`, withCredentials: true });
   instance.interceptors.request.use((config) => {
     if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-    config.headers["x-admin-key"] = effectiveAdminKey;
+    config.headers["x-admin-key"] = adminKey;
     return config;
   });
   return instance;

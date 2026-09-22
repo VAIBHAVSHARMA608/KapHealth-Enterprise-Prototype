@@ -10,7 +10,9 @@ import axios from "axios";
  * sent automatically (requires the backend's CORS to allow this app's
  * origin with credentials -- see server CLIENT_URL).
  */
-const api = axios.create({ baseURL: "/api", withCredentials: true });
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const ADMIN_API_BASE_URL = `${API_BASE_URL.replace(/\/$/, "")}/admin`;
+const api = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
 
 let accessToken = null;
 let onUnauthorized = () => {};
@@ -35,7 +37,9 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retried) {
+    const requestPath = original?.url || "";
+    const isAuthRequest = requestPath.includes("/auth/");
+    if (error.response?.status === 401 && !isAuthRequest && !original._retried) {
       original._retried = true;
       try {
         refreshPromise = refreshPromise || api.post("/auth/refresh");
@@ -58,7 +62,7 @@ export default api;
 /** Admin-gated instance. Throws rather than silently using a fallback key. */
 export function createAdminApi(adminKey) {
   if (!adminKey) throw new Error("createAdminApi requires a real admin key -- never falls back to a default.");
-  const instance = axios.create({ baseURL: "/api/admin", withCredentials: true });
+  const instance = axios.create({ baseURL: ADMIN_API_BASE_URL, withCredentials: true });
   instance.interceptors.request.use((config) => {
     if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
     config.headers["x-admin-key"] = adminKey;

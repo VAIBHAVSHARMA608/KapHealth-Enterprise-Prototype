@@ -18,7 +18,9 @@ const INSECURE_DEFAULTS = new Set([
 
 function assertEnv() {
   const isProd = process.env.NODE_ENV === "production";
-  const missing = required.filter((k) => !process.env[k]);
+  const missing = required.filter((k) => k === "MONGO_URI"
+    ? !(process.env.MONGO_URI || process.env.MONGODB_URI)
+    : !process.env[k]);
   const insecure = required.filter((k) => process.env[k] && INSECURE_DEFAULTS.has(process.env[k]));
 
   if (missing.length) {

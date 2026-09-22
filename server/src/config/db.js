@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 async function connectDB() {
-  const uri = process.env.MONGO_URI;
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
   if (!uri) {
     console.error("MONGO_URI missing in .env");
     process.exit(1);

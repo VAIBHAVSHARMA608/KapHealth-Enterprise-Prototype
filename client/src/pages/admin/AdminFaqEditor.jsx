@@ -6,6 +6,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useAdminAuth } from "../../context/AdminAuthContext.jsx";
+import api from "../../services/api.js";
 
 export default function AdminFaqEditor() {
   const { adminApi } = useAdminAuth();
@@ -20,9 +21,7 @@ export default function AdminFaqEditor() {
   });
 
   function load() {
-    fetch("/api/faqs?audience=both")
-      .then((r) => r.json())
-      .then((d) => setFaqs(d.faqs));
+    api.get("/faqs?audience=both").then(({ data }) => setFaqs(data.faqs || []));
   }
 
   useEffect(load, []);

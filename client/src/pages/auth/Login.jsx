@@ -124,6 +124,7 @@ export default function Login() {
   const { loginWithToken, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const testLoginEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_TEST_LOGIN === "true";
 
   const ADMIN_ROUTE_SECRET =
     import.meta.env.VITE_ADMIN_ROUTE_SECRET || "kap-ops-9f2a1c";
@@ -185,15 +186,22 @@ export default function Login() {
     setSubmitting(true);
 
     try {
+      const normalizedPhone = phone.trim().replace(/[\s()-]/g, "");
+      const e164Phone = /^\d{10}$/.test(normalizedPhone)
+        ? `+91${normalizedPhone}`
+        : normalizedPhone;
+      setPhone(e164Phone);
       await api.post("/auth/otp/request", {
-        phone,
+        phone: e164Phone,
         purpose: "login",
         role,
       });
       setStep("otp");
     } catch (err) {
       setError(
-        err.response?.data?.message ||
+        err.response?.data?.message?.includes("E.164")
+          ? "Enter a valid WhatsApp number, such as +919876543210."
+          : err.response?.data?.message ||
           "Couldn't send the OTP. Check the number and try again."
       );
     } finally {
@@ -538,7 +546,11 @@ export default function Login() {
                       id="phone"
                       label="WhatsApp number"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d+]/g, "");
+                        const digits = value.replace(/^\+/, "");
+                        setPhone(digits.length === 10 ? `+91${digits}` : value);
+                      }}
                       icon={<MessageCircle size={18} />}
                       placeholder="+91 98765 43210"
                       inputMode="tel"
@@ -644,7 +656,7 @@ export default function Login() {
               )}
 
               {/* DEV */}
-              {step === "test" && (
+              {testLoginEnabled && step === "test" && (
                 <form onSubmit={testLogin} className="mt-6 space-y-4">
                   <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
                     <p className="text-xs leading-5 text-amber-800">
@@ -702,7 +714,7 @@ export default function Login() {
               )}
 
               {/* DEV toggle */}
-              {step !== "test" && (
+              {testLoginEnabled && step !== "test" && (
                 <button
                   type="button"
                   onClick={() => {

@@ -202,7 +202,6 @@ export default function ChatBox({
                   )}
 
                   <div
-                    className="flex w-full animate-fade-up"
                   className={[
                     "flex w-full animate-fade-up",
                     mine ? "justify-end" : "justify-start",
@@ -268,6 +267,7 @@ export default function ChatBox({
                       )}
                     </div>
                   </div>
+                </div>
                 </div>
               );
             })}

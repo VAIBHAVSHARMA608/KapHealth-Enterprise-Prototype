@@ -23,15 +23,20 @@ export default function Help() {
   const [form, setForm] = useState({ category: "other", subject: "", description: "" });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [faqLoadError, setFaqLoadError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setFaqLoadError("");
     api
       .get("/faqs", { params: { audience: user?.role || "patient" } })
       .then(({ data }) => setFaqs(data.faqs || []))
-      .catch(() => setFaqs([]))
+      .catch(() => {
+        setFaqs([]);
+        setFaqLoadError("The help service is temporarily unavailable. Please try again shortly.");
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -176,6 +181,10 @@ export default function Help() {
                   </div>
                 );
               })
+            ) : faqLoadError ? (
+              <div className="help-empty">
+                <p>{faqLoadError}</p>
+              </div>
             ) : (
               <div className="help-empty">
                 <Search size={22} />
