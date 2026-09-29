@@ -14,7 +14,7 @@ const {
   bodyFatCategory,
   computeCalorieTarget,
 } = require("../utils/vitalCalculators");
-const { generatePlaceholderReview } = require("../utils/aiReviewStub");
+const { generateAiReview } = require("../utils/aiReviewStub");
 
 // ---------------------------------------------------------------------
 // Calculators (stateless -- BMI / BMR / TDEE / body fat, no save)
@@ -394,7 +394,7 @@ async function completeWorkoutSession(req, res, next) {
 }
 
 // ---------------------------------------------------------------------
-// AI reviewer (physique / diet) -- placeholder analysis, real upload
+// AI reviewer (physique / diet) -- real vision analysis
 // ---------------------------------------------------------------------
 async function submitAiReview(req, res, next) {
   try {
@@ -403,14 +403,14 @@ async function submitAiReview(req, res, next) {
     if (!req.files || req.files.length === 0) return res.status(400).json({ message: "Upload at least one photo" });
 
     const imageUrls = req.files.map((f) => `/uploads/wellness-photos/${f.filename}`);
-    const result = generatePlaceholderReview(type);
+    const result = await generateAiReview({ type, notes, files: req.files });
 
     const review = await AiReviewRequest.create({
       patient: req.user.id,
       type,
       imageUrls,
       notes,
-      isPlaceholder: true,
+      isPlaceholder: false,
       result,
     });
 
