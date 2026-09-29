@@ -31,7 +31,32 @@ const MEAL_ICON = {
 };
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  // Use the browser's local date, not UTC, so India/other time zones
+  // do not accidentally open yesterday's meal log around midnight.
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeTotals(value = {}) {
+  return {
+    calories: Number(value.calories || 0),
+    proteinG: Number(value.proteinG || 0),
+    carbsG: Number(value.carbsG || 0),
+    fatG: Number(value.fatG || 0),
+  };
+}
+
+function normalizeFood(food) {
+  return {
+    ...food,
+    calories: Number(food.calories || 0),
+    proteinG: Number(food.proteinG || 0),
+    carbsG: Number(food.carbsG || 0),
+    fatG: Number(food.fatG || 0),
+  };
 }
 
 const WELLNESS_ADS = [
@@ -85,31 +110,42 @@ export default function CalorieCounter() {
   const [search, setSearch] = useState("");
   const [foods, setFoods] = useState([]);
   const [activeMeal, setActiveMeal] = useState("breakfast");
+  const [servings, setServings] = useState(1);
   const [loadingLog, setLoadingLog] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [error, setError] = useState("");
+  const [targetError, setTargetError] = useState("");
+  const [foodSearchError, setFoodSearchError] = useState("");
   const [adIndex, setAdIndex] = useState(0);
   const [showAd, setShowAd] = useState(true);
 
   const loadLog = useCallback(async () => {
     setLoadingLog(true);
+
     try {
       const { data } = await api.get(`/wellness/meal-log/${date}`);
-      setEntries(data.entries || []);
-      setTotals(
-        data.totals || {
-          calories: 0,
-          proteinG: 0,
-          carbsG: 0,
-          fatG: 0,
-        }
-      );
+
+      const safeEntries = Array.isArray(data?.entries)
+        ? data.entries.map((entry) => ({
+            ...entry,
+            calories: Number(entry.calories || 0),
+            proteinG: Number(entry.proteinG || 0),
+            carbsG: Number(entry.carbsG || 0),
+            fatG: Number(entry.fatG || 0),
+            servings: Number(entry.servings || 1),
+          }))
+        : [];
+
+      setEntries(safeEntries);
+      setTotals(normalizeTotals(data?.totals));
       setError("");
     } catch (err) {
+      setEntries([]);
+      setTotals(normalizeTotals());
       setError(
         err.response?.data?.message ||
-          "Couldn't load your meal log."
+          "Couldn't load your meal log. Check that the wellness API is running and your session is valid."
       );
     } finally {
       setLoadingLog(false);
@@ -121,10 +157,32 @@ export default function CalorieCounter() {
   }, [loadLog]);
 
   useEffect(() => {
-    api
-      .get("/wellness/diet-plans/active")
-      .then(({ data }) => setTarget(data.plan))
-      .catch(() => {});
+    let cancelled = false;
+
+    async function loadTarget() {
+      try {
+        const { data } = await api.get("/wellness/diet-plans/active");
+
+        if (cancelled) return;
+
+        setTarget(data?.plan || null);
+        setTargetError("");
+      } catch (err) {
+        if (!cancelled) {
+          setTarget(null);
+          setTargetError(
+            err.response?.data?.message ||
+              "No active diet target is available. Generate a diet plan first."
+          );
+        }
+      }
+    }
+
+    loadTarget();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -135,11 +193,13 @@ export default function CalorieCounter() {
 
       if (query.length < 2) {
         setFoods([]);
+        setFoodSearchError("");
         setLoadingFoods(false);
         return;
       }
 
       setLoadingFoods(true);
+      setFoodSearchError("");
 
       try {
         const { data } = await api.get("/wellness/foods", {
@@ -147,11 +207,19 @@ export default function CalorieCounter() {
         });
 
         if (!cancelled) {
-          setFoods(data.foods || []);
+          const safeFoods = Array.isArray(data?.foods)
+            ? data.foods.map(normalizeFood)
+            : [];
+
+          setFoods(safeFoods);
         }
-      } catch {
+      } catch (err) {
         if (!cancelled) {
           setFoods([]);
+          setFoodSearchError(
+            err.response?.data?.message ||
+              "Food database could not be reached."
+          );
         }
       } finally {
         if (!cancelled) {
@@ -167,18 +235,35 @@ export default function CalorieCounter() {
   }, [search]);
 
   async function addFood(food) {
+    const numericServings = Number(servings);
+
+    if (!Number.isFinite(numericServings) || numericServings <= 0) {
+      setError("Enter a valid serving amount greater than 0.");
+      return;
+    }
+
+    if (!food?._id) {
+      setError("This food item is missing its database ID.");
+      return;
+    }
+
+    setError("");
     setActionId(`add-${food._id}`);
 
     try {
+      // The backend remains the source of truth for calories/macros.
+      // We send the selected food ID + serving count; we never invent
+      // nutrition values in the browser.
       await api.post("/wellness/meal-log", {
         date,
         mealType: activeMeal,
         foodItemId: food._id,
-        servings: 1,
+        servings: numericServings,
       });
 
       setSearch("");
       setFoods([]);
+      setServings(1);
       await loadLog();
     } catch (err) {
       setError(
@@ -191,6 +276,7 @@ export default function CalorieCounter() {
   }
 
   async function removeEntry(id) {
+    setError("");
     setActionId(`remove-${id}`);
 
     try {
@@ -208,18 +294,20 @@ export default function CalorieCounter() {
 
   const calorieTarget = target?.calorieTarget;
 
+  const calorieTargetNumber = Number(calorieTarget);
+
   const pct =
-    calorieTarget > 0
-      ? Math.min(
-          100,
-          Math.round((totals.calories / calorieTarget) * 100)
-        )
+    Number.isFinite(calorieTargetNumber) && calorieTargetNumber > 0
+      ? Math.round((totals.calories / calorieTargetNumber) * 100)
       : null;
 
   const remainingCalories =
-    calorieTarget != null
-      ? Math.max(0, calorieTarget - totals.calories)
+    Number.isFinite(calorieTargetNumber) && calorieTargetNumber > 0
+      ? calorieTargetNumber - totals.calories
       : null;
+
+  const isOverTarget =
+    remainingCalories != null && remainingCalories < 0;
 
   const macros = useMemo(
     () => [
@@ -227,28 +315,46 @@ export default function CalorieCounter() {
         label: "Protein",
         value: totals.proteinG,
         unit: "g",
-        ratio: calorieTarget
-          ? Math.min(100, Math.round(((totals.proteinG * 4) / calorieTarget) * 100))
-          : null,
+        ratio:
+          calorieTargetNumber > 0
+            ? Math.min(
+                100,
+                Math.round(
+                  ((totals.proteinG * 4) / calorieTargetNumber) * 100
+                )
+              )
+            : null,
       },
       {
         label: "Carbs",
         value: totals.carbsG,
         unit: "g",
-        ratio: calorieTarget
-          ? Math.min(100, Math.round(((totals.carbsG * 4) / calorieTarget) * 100))
-          : null,
+        ratio:
+          calorieTargetNumber > 0
+            ? Math.min(
+                100,
+                Math.round(
+                  ((totals.carbsG * 4) / calorieTargetNumber) * 100
+                )
+              )
+            : null,
       },
       {
         label: "Fat",
         value: totals.fatG,
         unit: "g",
-        ratio: calorieTarget
-          ? Math.min(100, Math.round(((totals.fatG * 9) / calorieTarget) * 100))
-          : null,
+        ratio:
+          calorieTargetNumber > 0
+            ? Math.min(
+                100,
+                Math.round(
+                  ((totals.fatG * 9) / calorieTargetNumber) * 100
+                )
+              )
+            : null,
       },
     ],
-    [totals, calorieTarget]
+    [totals, calorieTargetNumber]
   );
 
   useEffect(() => {
@@ -408,21 +514,32 @@ export default function CalorieCounter() {
                   type="date"
                   value={date}
                   max={today()}
-                  onChange={(e) => setDate(e.target.value)}
+                  onChange={(e) => {
+                    setError("");
+                    setDate(e.target.value);
+                  }}
                   aria-label="Meal log date"
                 />
               </label>
 
-              {calorieTarget != null && (
+              {calorieTarget != null ? (
                 <div className="flex h-11 items-center gap-2 rounded-xl border border-primary/10 bg-primary/[0.04] px-3.5">
                   <Flame size={15} className="text-primary" />
                   <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
                     Daily target
                   </span>
                   <span className="text-xs font-bold text-primary">
-                    {calorieTarget} kcal
+                    {Math.round(calorieTargetNumber)} kcal
                   </span>
                 </div>
+              ) : (
+                <Link
+                  to="/patient/wellness/diet-planner"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 text-[10px] font-bold text-amber-800 transition hover:bg-amber-100"
+                >
+                  <Flame size={14} />
+                  Create diet target
+                </Link>
               )}
             </div>
           </div>
@@ -457,29 +574,40 @@ export default function CalorieCounter() {
               </div>
 
               {remainingCalories != null ? (
-                <p className="mt-1 text-xs text-white/45">
-                  {remainingCalories} kcal remaining
+                <p className="mt-1 text-xs text-white/55">
+                  {isOverTarget
+                    ? `${Math.abs(Math.round(remainingCalories))} kcal over target`
+                    : `${Math.round(remainingCalories)} kcal remaining`}
                 </p>
               ) : (
-                <p className="mt-1 text-xs text-white/45">
-                  Set a diet target to see remaining calories.
+                <p className="mt-1 text-xs text-white/55">
+                  Generate a diet plan to see your daily target.
                 </p>
               )}
 
               {pct != null && (
                 <div className="mt-5">
-                  <div className="flex items-center justify-between text-[10px] text-white/50">
+                  <div className="flex items-center justify-between text-[10px] text-white/55">
                     <span>{pct}% of target</span>
-                    <span>{calorieTarget} kcal</span>
+                    <span>{Math.round(calorieTargetNumber)} kcal</span>
                   </div>
 
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full rounded-full bg-emerald-200 transition-all duration-500"
-                      style={{ width: `${pct}%` }}
+                      className={[
+                        "h-full rounded-full transition-all duration-500",
+                        isOverTarget ? "bg-rose-300" : "bg-emerald-200",
+                      ].join(" ")}
+                      style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
                     />
                   </div>
                 </div>
+              )}
+
+              {targetError && (
+                <p className="mt-3 text-[9px] leading-4 text-amber-200/90">
+                  {targetError}
+                </p>
               )}
             </div>
           </div>
@@ -622,7 +750,10 @@ export default function CalorieCounter() {
                   <button
                     key={meal}
                     type="button"
-                    onClick={() => setActiveMeal(meal)}
+                    onClick={() => {
+                      setError("");
+                      setActiveMeal(meal);
+                    }}
                     className={[
                       "flex min-w-[100px] flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-[11px] font-semibold transition-all duration-300",
                       selected
@@ -635,6 +766,28 @@ export default function CalorieCounter() {
                   </button>
                 );
               })}
+            </div>
+
+            <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-3">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3.5 py-3">
+                <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400">
+                  Servings
+                </p>
+                <p className="mt-0.5 text-[10px] text-slate-500">
+                  Use the actual amount you consumed.
+                </p>
+              </div>
+
+              <input
+                className="input h-12 w-24 text-center font-semibold"
+                type="number"
+                min="0.25"
+                max="20"
+                step="0.25"
+                value={servings}
+                onChange={(e) => setServings(e.target.value)}
+                aria-label="Number of servings"
+              />
             </div>
 
             {/* Search */}
@@ -657,6 +810,7 @@ export default function CalorieCounter() {
                   onClick={() => {
                     setSearch("");
                     setFoods([]);
+                    setFoodSearchError("");
                   }}
                   className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                   aria-label="Clear search"
@@ -738,10 +892,16 @@ export default function CalorieCounter() {
               </div>
             )}
 
+            {foodSearchError && (
+              <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-[10px] leading-4 text-amber-800">
+                {foodSearchError}
+              </div>
+            )}
+
             <div className="mt-5 flex items-center gap-2 text-[10px] text-slate-400">
               <Utensils size={12} className="text-primary/70" />
-              Serving size and nutrition values come from your KapHealth food
-              library.
+              Calories and macros are read from the KapHealth food database;
+              totals are recalculated by the server after every entry.
             </div>
           </div>
 
@@ -761,8 +921,16 @@ export default function CalorieCounter() {
             </div>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
-                {error}
+              <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+                <p className="leading-5">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => loadLog()}
+                  disabled={loadingLog}
+                  className="shrink-0 rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-bold text-red-700 shadow-sm transition hover:bg-red-100 disabled:opacity-50"
+                >
+                  Retry
+                </button>
               </div>
             )}
 
@@ -822,7 +990,7 @@ export default function CalorieCounter() {
                                 {entry.name} × {entry.servings}
                               </p>
                               <p className="text-[9px] text-slate-400">
-                                {entry.calories} kcal
+                                {entry.calories} kcal · P {Number(entry.proteinG || 0).toFixed(1)}g · C {Number(entry.carbsG || 0).toFixed(1)}g · F {Number(entry.fatG || 0).toFixed(1)}g
                               </p>
                             </div>
 

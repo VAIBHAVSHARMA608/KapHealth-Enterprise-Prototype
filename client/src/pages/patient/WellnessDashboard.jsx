@@ -174,6 +174,77 @@ function StatusPill({ children, icon: Icon }) {
   );
 }
 
+
+function calculateDashboardBodyFat(metric) {
+  if (
+    metric?.bodyFatPercent !== undefined &&
+    metric?.bodyFatPercent !== null &&
+    Number.isFinite(Number(metric.bodyFatPercent))
+  ) {
+    return Number(metric.bodyFatPercent);
+  }
+
+  const heightCm = Number(metric?.heightCm);
+  const gender = metric?.gender;
+  const measurements = metric?.measurements || {};
+
+  const waist = Number(measurements.waist);
+  const neck = Number(measurements.neck);
+  const hip = Number(measurements.hip);
+
+  if (!heightCm || !waist || !neck || waist <= neck) return null;
+
+  const heightIn = heightCm / 2.54;
+  const waistIn = waist / 2.54;
+  const neckIn = neck / 2.54;
+
+  let bodyFat;
+
+  if (gender === "female") {
+    if (!hip || hip <= 0) return null;
+
+    const hipIn = hip / 2.54;
+    if (waistIn + hipIn <= neckIn) return null;
+
+    bodyFat =
+      495 /
+        (1.29579 -
+          0.35004 * Math.log10(waistIn + hipIn - neckIn) +
+          0.221 * Math.log10(heightIn)) -
+      450;
+  } else {
+    bodyFat =
+      495 /
+        (1.0324 -
+          0.19077 * Math.log10(waistIn - neckIn) +
+          0.15456 * Math.log10(heightIn)) -
+      450;
+  }
+
+  if (!Number.isFinite(bodyFat) || bodyFat < 0 || bodyFat > 70) return null;
+
+  return Number(bodyFat.toFixed(1));
+}
+
+function bodyFatCategory(value, gender) {
+  const bodyFat = Number(value);
+  if (!Number.isFinite(bodyFat)) return "Not available";
+
+  if (gender === "female") {
+    if (bodyFat < 14) return "Very low";
+    if (bodyFat < 21) return "Athletic";
+    if (bodyFat < 25) return "Fitness";
+    if (bodyFat < 32) return "Average";
+    return "Higher range";
+  }
+
+  if (bodyFat < 6) return "Very low";
+  if (bodyFat < 14) return "Athletic";
+  if (bodyFat < 18) return "Fitness";
+  if (bodyFat < 25) return "Average";
+  return "Higher range";
+}
+
 export default function WellnessDashboard() {
   const [latestMetric, setLatestMetric] = useState(null);
   const [activePlan, setActivePlan] = useState(null);
@@ -243,6 +314,16 @@ export default function WellnessDashboard() {
         { day: "numeric", month: "short", year: "numeric" }
       )
     : null;
+
+  const latestBodyFat = calculateDashboardBodyFat(latestMetric);
+  const latestBodyFatLabel =
+    latestBodyFat !== null
+      ? `${latestBodyFat}%`
+      : "—";
+  const latestBodyFatSub =
+    latestBodyFat !== null
+      ? bodyFatCategory(latestBodyFat, latestMetric?.gender)
+      : "Add waist + neck (and hip for female) in vitals";
 
   const wellnessScore = useMemo(() => {
     let score = 0;
@@ -866,16 +947,43 @@ export default function WellnessDashboard() {
 
             {latestMetric ? (
               <div className="mt-6">
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <Snapshot
+                    label="Height"
+                    value={
+                      latestMetric.heightCm
+                        ? `${latestMetric.heightCm} cm`
+                        : "—"
+                    }
+                    sub="latest height"
+                  />
+                  <Snapshot
+                    label="Weight"
+                    value={`${latestMetric.weightKg} kg`}
+                    sub="latest body weight"
+                  />
+                  <Snapshot
+                    label="BMI"
+                    value={
+                      latestMetric.bmi !== undefined &&
+                      latestMetric.bmi !== null
+                        ? `${latestMetric.bmi}`
+                        : "—"
+                    }
+                    sub={latestMetric.bmiCategory || "BMI category"}
+                  />
+                  <Snapshot
+                    label="Body fat"
+                    value={latestBodyFatLabel}
+                    sub={latestBodyFatSub}
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <Snapshot
                     label="Recorded"
                     value={latestDate}
                     sub="latest saved entry"
-                  />
-                  <Snapshot
-                    label="Weight"
-                    value={`${latestMetric.weightKg}kg`}
-                    sub="latest body weight"
                   />
                   <Snapshot
                     label="TDEE"

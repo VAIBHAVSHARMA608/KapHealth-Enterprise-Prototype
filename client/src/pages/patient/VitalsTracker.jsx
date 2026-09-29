@@ -93,6 +93,225 @@ const MEASUREMENT_FIELDS = [
   { key: "thigh", label: "Thigh" },
 ];
 
+
+function calculateLocalBmi(heightCm, weightKg) {
+  const h = Number(heightCm);
+  const w = Number(weightKg);
+  if (!h || !w || h <= 0 || w <= 0) return null;
+
+  const bmi = w / ((h / 100) ** 2);
+  return Number(bmi.toFixed(1));
+}
+
+function getLocalBmiCategory(bmi) {
+  const value = Number(bmi);
+  if (!Number.isFinite(value)) return "—";
+  if (value < 18.5) return "Underweight";
+  if (value < 25) return "Healthy weight";
+  if (value < 30) return "Overweight";
+  return "Obesity";
+}
+
+function calculateNavyBodyFat({ heightCm, gender, waist, neck, hip }) {
+  const height = Number(heightCm);
+  const waistValue = Number(waist);
+  const neckValue = Number(neck);
+  const hipValue = Number(hip);
+
+  if (!height || !waistValue || !neckValue || height <= 0) return null;
+  if (waistValue <= neckValue) return null;
+
+  // U.S. Navy circumference method uses inches.
+  const heightIn = height / 2.54;
+  const waistIn = waistValue / 2.54;
+  const neckIn = neckValue / 2.54;
+
+  let bodyFat;
+
+  if (gender === "female") {
+    if (!hipValue || hipValue <= 0) return null;
+    const hipIn = hipValue / 2.54;
+    if (waistIn + hipIn <= neckIn) return null;
+
+    bodyFat =
+      495 /
+        (1.29579 -
+          0.35004 * Math.log10(waistIn + hipIn - neckIn) +
+          0.221 * Math.log10(heightIn)) -
+      450;
+  } else {
+    bodyFat =
+      495 /
+        (1.0324 -
+          0.19077 * Math.log10(waistIn - neckIn) +
+          0.15456 * Math.log10(heightIn)) -
+      450;
+  }
+
+  if (!Number.isFinite(bodyFat) || bodyFat < 0 || bodyFat > 70) return null;
+  return Number(bodyFat.toFixed(1));
+}
+
+function getBodyFatCategory(bodyFat, gender) {
+  const value = Number(bodyFat);
+  if (!Number.isFinite(value)) return null;
+
+  if (gender === "female") {
+    if (value < 14) return "Essential / very low";
+    if (value < 21) return "Athletic range";
+    if (value < 25) return "Fitness range";
+    if (value < 32) return "Average range";
+    return "Higher range";
+  }
+
+  if (value < 6) return "Essential / very low";
+  if (value < 14) return "Athletic range";
+  if (value < 18) return "Fitness range";
+  if (value < 25) return "Average range";
+  return "Higher range";
+}
+
+function BmiWeightChart({ heightCm, weightKg, bmi }) {
+  const height = Number(heightCm);
+  const weight = Number(weightKg);
+  const currentBmi = Number(bmi);
+
+  const rows = [150, 155, 160, 165, 170, 175, 180, 185, 190].map((cm) => ({
+    height: cm,
+    min: Number((18.5 * (cm / 100) ** 2).toFixed(1)),
+    max: Number((24.9 * (cm / 100) ** 2).toFixed(1)),
+  }));
+
+  const nearestHeight =
+    Number.isFinite(height) && height > 0
+      ? rows.reduce((closest, row) =>
+          Math.abs(row.height - height) < Math.abs(closest.height - height)
+            ? row
+            : closest
+        )
+      : null;
+
+  const currentRange =
+    height > 0
+      ? {
+          min: Number((18.5 * (height / 100) ** 2).toFixed(1)),
+          max: Number((24.9 * (height / 100) ** 2).toFixed(1)),
+        }
+      : null;
+
+  const scaleMin = 15;
+  const scaleMax = 35;
+  const marker = Number.isFinite(currentBmi)
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          ((currentBmi - scaleMin) / (scaleMax - scaleMin)) * 100
+        )
+      )
+    : null;
+
+  return (
+    <div className="mt-7 rounded-[1.7rem] border border-slate-200/80 bg-white/65 p-5 shadow-sm">
+      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-[.14em] text-primary">
+            BMI reference chart
+          </p>
+          <h3 className="mt-1 text-base font-semibold text-slate-900">
+            Height → healthy weight range
+          </h3>
+          <p className="mt-1 text-[10px] leading-5 text-slate-500">
+            Healthy-weight range is based on BMI 18.5–24.9.
+          </p>
+        </div>
+
+        {currentRange && (
+          <div className="rounded-xl bg-primary/10 px-3 py-2 text-right">
+            <p className="text-[8px] font-bold uppercase tracking-[.12em] text-primary">
+              Your height
+            </p>
+            <p className="mt-0.5 font-mono text-sm font-bold text-slate-900">
+              {height} cm
+            </p>
+            <p className="text-[9px] text-slate-500">
+              Healthy: {currentRange.min}–{currentRange.max} kg
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70">
+        <div className="grid grid-cols-[.8fr_1fr_1fr] bg-slate-50 px-3 py-2 text-[8px] font-bold uppercase tracking-[.12em] text-slate-400">
+          <span>Height</span>
+          <span>Healthy weight</span>
+          <span>Current</span>
+        </div>
+
+        {rows.map((row) => {
+          const isCurrent = nearestHeight?.height === row.height;
+          return (
+            <div
+              key={row.height}
+              className={`grid grid-cols-[.8fr_1fr_1fr] items-center px-3 py-2.5 text-[10px] ${
+                isCurrent ? "bg-primary/8 font-semibold" : "bg-white/45"
+              }`}
+            >
+              <span className="font-mono text-slate-700">{row.height} cm</span>
+              <span className="text-slate-600">
+                {row.min}–{row.max} kg
+              </span>
+              <span
+                className={
+                  isCurrent ? "font-mono text-primary" : "text-slate-300"
+                }
+              >
+                {isCurrent && Number.isFinite(weight) ? `${weight} kg` : "—"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {Number.isFinite(currentBmi) && (
+        <div className="mt-5">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-bold uppercase tracking-[.12em] text-slate-400">
+              Your BMI: <span className="text-slate-800">{currentBmi}</span>
+            </p>
+            <p className="text-[9px] font-semibold text-slate-500">
+              {getLocalBmiCategory(currentBmi)}
+            </p>
+          </div>
+
+          <div className="relative mt-3">
+            <div className="grid h-3 grid-cols-4 overflow-hidden rounded-full">
+              <div className="bg-sky-300" />
+              <div className="bg-emerald-400" />
+              <div className="bg-amber-300" />
+              <div className="bg-rose-400" />
+            </div>
+            {marker !== null && (
+              <div
+                className="absolute top-1/2 h-6 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-950 shadow"
+                style={{ left: `${marker}%` }}
+                title={`BMI ${currentBmi}`}
+              />
+            )}
+          </div>
+
+          <div className="mt-2 grid grid-cols-4 gap-1 text-[8px] text-slate-400">
+            <span>Underweight</span>
+            <span>Healthy</span>
+            <span>Overweight</span>
+            <span>Obesity</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GlassPanel({ children, className = "" }) {
   return (
     <section
@@ -295,29 +514,67 @@ export default function VitalsTracker() {
     setCalculating(true);
 
     try {
-      const { data } = await api.post("/wellness/calculate", {
+      const payload = {
         heightCm: Number(form.heightCm),
         weightKg: Number(form.weightKg),
         age: Number(form.age),
         gender: form.gender,
         activityLevel: form.activityLevel,
-        waist: form.waist
-          ? Number(form.waist)
-          : undefined,
-        neck: form.neck
-          ? Number(form.neck)
-          : undefined,
-        hip: form.hip
-          ? Number(form.hip)
-          : undefined,
-      });
+        waist: form.waist ? Number(form.waist) : undefined,
+        neck: form.neck ? Number(form.neck) : undefined,
+        hip: form.hip ? Number(form.hip) : undefined,
+      };
 
-      setResult(data);
+      const { data } = await api.post("/wellness/calculate", payload);
+
+      const localBmi = calculateLocalBmi(form.heightCm, form.weightKg);
+      const localBodyFat = calculateNavyBodyFat(form);
+
+      setResult({
+        ...data,
+        bmi:
+          data?.bmi !== undefined && data?.bmi !== null
+            ? data.bmi
+            : localBmi,
+        bmiCategory:
+          data?.bmiCategory ||
+          getLocalBmiCategory(
+            data?.bmi !== undefined && data?.bmi !== null
+              ? data.bmi
+              : localBmi
+          ),
+        bodyFatPercent:
+          data?.bodyFatPercent !== undefined &&
+          data?.bodyFatPercent !== null
+            ? data.bodyFatPercent
+            : localBodyFat,
+        bodyFatCategory:
+          data?.bodyFatCategory ||
+          getBodyFatCategory(localBodyFat, form.gender),
+      });
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Couldn't calculate. Please check your inputs."
-      );
+      // Keep BMI/body-fat usable even if the wellness calculation API is unavailable.
+      const localBmi = calculateLocalBmi(form.heightCm, form.weightKg);
+      const localBodyFat = calculateNavyBodyFat(form);
+
+      if (localBmi !== null) {
+        setResult({
+          bmi: localBmi,
+          bmiCategory: getLocalBmiCategory(localBmi),
+          bmr: "—",
+          tdee: "—",
+          bodyFatPercent: localBodyFat,
+          bodyFatCategory: getBodyFatCategory(localBodyFat, form.gender),
+        });
+        setError(
+          "BMI/body-fat were calculated locally. BMR/TDEE need the wellness server."
+        );
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "Couldn't calculate. Please check your inputs."
+        );
+      }
     } finally {
       setCalculating(false);
     }
@@ -941,6 +1198,13 @@ export default function VitalsTracker() {
                     />
                   ))}
                 </div>
+
+                <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/70 px-3 py-2 text-[9px] leading-4 text-amber-800">
+                  <strong>Body fat estimate:</strong> male needs waist + neck;
+                  female needs waist + hip + neck. Measurements are entered in
+                  centimeters. If these are filled, the U.S. Navy estimate is
+                  shown automatically.
+                </div>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -1150,18 +1414,25 @@ export default function VitalsTracker() {
               <ResultCard
                 label="Body fat"
                 value={
-                  result.bodyFatPercent
+                  result.bodyFatPercent !== undefined &&
+                  result.bodyFatPercent !== null
                     ? `${result.bodyFatPercent}%`
                     : "—"
                 }
                 sub={
                   result.bodyFatCategory ||
-                  "Add the supported measurements to estimate"
+                  "Add waist + neck (and hip for female)"
                 }
                 icon={Droplets}
                 tone="coral"
               />
             </div>
+
+            <BmiWeightChart
+              heightCm={form.heightCm}
+              weightKg={form.weightKg}
+              bmi={result.bmi}
+            />
           </section>
         )}
 
