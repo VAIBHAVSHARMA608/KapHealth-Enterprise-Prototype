@@ -737,9 +737,9 @@ export default function WorkoutPlanner() {
           <div className="grid gap-7 lg:grid-cols-[1.2fr_.8fr] lg:items-center">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="glass-pill inline-flex items-center gap-1.5">
-                  <Dumbbell size={13} className="text-primary" />
-                  Workout planner
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">
+                  <BadgeCheck size={11} />
+                  Workout Planner
                 </span>
 
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">

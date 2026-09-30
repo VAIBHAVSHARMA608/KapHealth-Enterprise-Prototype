@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+
 import {
   Apple,
   ArrowRight,
   CalendarDays,
   CheckCircle2,
   Flame,
+  Play,
   Plus,
   Search,
   Sparkles,
   Trash2,
   Utensils,
 } from "lucide-react";
+
 import Navbar from "../../components/Navbar.jsx";
 import api from "../../services/api.js";
 
@@ -368,7 +372,67 @@ export default function CalorieCounter() {
   const activeAd = WELLNESS_ADS[adIndex];
 
   return (
-    <div className="wellness-surface relative min-h-screen overflow-hidden">
+    <div className="wellness-surface relative min-h-screen overflow-hidden text-black">
+      <style>{`
+        /* Keep all normal page copy and typed/input text clearly black. */
+        .wellness-surface {
+          color: #000000;
+        }
+
+        .wellness-surface .glass-pill {
+          color: #000000 !important;
+        }
+
+        .wellness-surface input,
+        .wellness-surface textarea,
+        .wellness-surface select {
+          color: #000000 !important;
+          -webkit-text-fill-color: #000000 !important;
+          caret-color: #000000 !important;
+        }
+
+        .wellness-surface input::placeholder,
+        .wellness-surface textarea::placeholder {
+          color: #4b5563 !important;
+          opacity: 1 !important;
+          -webkit-text-fill-color: #4b5563 !important;
+        }
+
+        .wellness-surface option {
+          color: #000000 !important;
+          background: #ffffff !important;
+        }
+
+        /* Override slate text used by the existing Tailwind classes. */
+        .wellness-surface .text-slate-950,
+        .wellness-surface .text-slate-900,
+        .wellness-surface .text-slate-800,
+        .wellness-surface .text-slate-700,
+        .wellness-surface .text-slate-600,
+        .wellness-surface .text-slate-500,
+        .wellness-surface .text-slate-400,
+        .wellness-surface .text-slate-300 {
+          color: #000000 !important;
+        }
+
+        /* Keep the dark campaign/target cards readable. */
+        .wellness-surface .text-white,
+        .wellness-surface .text-white\\/40,
+        .wellness-surface .text-white\\/50,
+        .wellness-surface .text-white\\/55,
+        .wellness-surface .text-white\\/60,
+        .wellness-surface .text-emerald-100,
+        .wellness-surface .text-emerald-200,
+        .wellness-surface .text-emerald-200\\/55,
+        .wellness-surface .text-amber-200\\/90 {
+          color: inherit;
+        }
+
+        .wellness-surface .wellness-dark-copy {
+          color: #ffffff !important;
+        }
+      `}</style>
+
       <Navbar />
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -423,10 +487,10 @@ export default function CalorieCounter() {
                 </div>
 
                 <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-                  <h2 className="truncate text-sm font-semibold text-slate-900 sm:text-base">
+                  <h2 className="truncate text-sm font-semibold text-black sm:text-base">
                     {activeAd.title}
                   </h2>
-                  <p className="line-clamp-1 hidden text-xs text-slate-500 sm:block">
+                  <p className="line-clamp-1 hidden text-xs text-black sm:block">
                     {activeAd.copy}
                   </p>
                 </div>
@@ -462,7 +526,7 @@ export default function CalorieCounter() {
               <button
                 type="button"
                 onClick={() => setShowAd(false)}
-                className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-black transition hover:bg-slate-100"
                 aria-label="Close promotion"
               >
                 <span className="text-base leading-none">×</span>
@@ -476,18 +540,18 @@ export default function CalorieCounter() {
         {/* Page heading */}
         <section className="grid gap-5 lg:grid-cols-[1fr_330px]">
           <div className="rounded-[2rem] border border-white/80 bg-white/65 p-7 shadow-[0_18px_55px_rgba(15,23,42,0.06)] backdrop-blur-2xl sm:p-9">
-            <div className="glass-pill">
+            <div className="glass-pill text-black">
               <Sparkles size={13} className="text-primary" />
-              Wellness tracker
+              <span className="text-black">Wellness tracker</span>
             </div>
 
             <div className="mt-7 flex items-end justify-between gap-5">
               <div>
                 <p className="eyebrow">Daily nutrition</p>
-                <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-black sm:text-4xl">
                   Log your meals.
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-black">
                   Keep calories and macros visible throughout the day without
                   turning nutrition tracking into spreadsheet cosplay.
                 </p>
@@ -505,12 +569,12 @@ export default function CalorieCounter() {
                   className="text-slate-400 transition-colors group-focus-within:text-primary"
                 />
 
-                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-black">
                   Day
                 </span>
 
                 <input
-                  className="bg-transparent text-xs font-semibold text-slate-800 outline-none"
+                  className="bg-transparent text-xs font-semibold text-black outline-none"
                   type="date"
                   value={date}
                   max={today()}
@@ -525,7 +589,7 @@ export default function CalorieCounter() {
               {calorieTarget != null ? (
                 <div className="flex h-11 items-center gap-2 rounded-xl border border-primary/10 bg-primary/[0.04] px-3.5">
                   <Flame size={15} className="text-primary" />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-black">
                     Daily target
                   </span>
                   <span className="text-xs font-bold text-primary">
@@ -568,9 +632,7 @@ export default function CalorieCounter() {
                 <span className="font-mono text-4xl font-semibold tracking-tight">
                   {totals.calories}
                 </span>
-                <span className="mb-1 text-xs text-white/40">
-                  kcal
-                </span>
+                <span className="mb-1 text-xs text-white/40">kcal</span>
               </div>
 
               {remainingCalories != null ? (
@@ -639,7 +701,7 @@ export default function CalorieCounter() {
 
                 <Link
                   to="/patient/wellness"
-                  className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-gradient-to-b from-white to-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-[0_5px_4px_rgba(255,255,255,.35),0_8px_18px_rgba(0,0,0,.14)] transition hover:-translate-y-0.5 hover:text-primary"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-gradient-to-b from-white to-slate-100 px-4 py-2.5 text-xs font-semibold text-black shadow-[0_5px_4px_rgba(255,255,255,.35),0_8px_18px_rgba(0,0,0,.14)] transition hover:-translate-y-0.5 hover:text-primary"
                 >
                   Explore wellness
                   <ArrowRight size={13} />
@@ -692,20 +754,20 @@ export default function CalorieCounter() {
               className="rounded-2xl border border-white/75 bg-white/65 p-4 shadow-sm backdrop-blur-xl"
             >
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-black">
                   {macro.label}
                 </p>
 
                 {macro.ratio != null && (
-                  <span className="text-[9px] font-semibold text-slate-400">
+                  <span className="text-[9px] font-semibold text-black">
                     {macro.ratio}%
                   </span>
                 )}
               </div>
 
-              <p className="mt-2 font-mono text-xl font-semibold text-slate-900">
+              <p className="mt-2 font-mono text-xl font-semibold text-black">
                 {macro.value}
-                <span className="ml-1 text-xs font-normal text-slate-400">
+                <span className="ml-1 text-xs font-normal text-black">
                   {macro.unit}
                 </span>
               </p>
@@ -728,10 +790,10 @@ export default function CalorieCounter() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="eyebrow">Add food</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                   What did you eat?
                 </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-black">
                   Add foods to the meal you are currently tracking.
                 </p>
               </div>
@@ -758,7 +820,7 @@ export default function CalorieCounter() {
                       "flex min-w-[100px] flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-[11px] font-semibold transition-all duration-300",
                       selected
                         ? "bg-white text-primary shadow-sm ring-1 ring-black/[0.03]"
-                        : "text-slate-500 hover:text-slate-900",
+                        : "text-black hover:text-black",
                     ].join(" ")}
                   >
                     <span className="text-xs">{MEAL_ICON[meal]}</span>
@@ -770,16 +832,16 @@ export default function CalorieCounter() {
 
             <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-3">
               <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3.5 py-3">
-                <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400">
+                <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-black">
                   Servings
                 </p>
-                <p className="mt-0.5 text-[10px] text-slate-500">
+                <p className="mt-0.5 text-[10px] text-black">
                   Use the actual amount you consumed.
                 </p>
               </div>
 
               <input
-                className="input h-12 w-24 text-center font-semibold"
+                className="input h-12 w-24 text-center font-semibold text-black"
                 type="number"
                 min="0.25"
                 max="20"
@@ -794,11 +856,11 @@ export default function CalorieCounter() {
             <div className="relative mt-4">
               <Search
                 size={17}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-black"
               />
 
               <input
-                className="input h-12 pl-11 pr-10"
+                className="input h-12 pl-11 pr-10 text-black"
                 placeholder={`Search foods for ${MEAL_LABEL[activeMeal].toLowerCase()}...`}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -812,7 +874,7 @@ export default function CalorieCounter() {
                     setFoods([]);
                     setFoodSearchError("");
                   }}
-                  className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-black transition hover:bg-slate-100"
                   aria-label="Clear search"
                 >
                   ×
@@ -851,20 +913,20 @@ export default function CalorieCounter() {
                           disabled={adding}
                           className="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-primary/[0.05] disabled:opacity-60"
                         >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition group-hover:bg-primary/10 group-hover:text-primary">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-black transition group-hover:bg-primary/10 group-hover:text-primary">
                             <Apple size={16} />
                           </span>
 
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-xs font-semibold text-slate-800">
+                            <span className="block truncate text-xs font-semibold text-black">
                               {food.name}
                             </span>
-                            <span className="block truncate text-[10px] text-slate-400">
+                            <span className="block truncate text-[10px] text-black">
                               {food.servingLabel}
                             </span>
                           </span>
 
-                          <span className="flex items-center gap-2 text-[10px] font-semibold text-slate-500">
+                          <span className="flex items-center gap-2 text-[10px] font-semibold text-black">
                             {food.calories} kcal
                             {adding ? (
                               <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
@@ -881,10 +943,10 @@ export default function CalorieCounter() {
                   </div>
                 ) : (
                   <div className="px-4 py-7 text-center">
-                    <p className="text-xs font-semibold text-slate-600">
+                    <p className="text-xs font-semibold text-black">
                       No matching foods
                     </p>
-                    <p className="mt-1 text-[10px] text-slate-400">
+                    <p className="mt-1 text-[10px] text-black">
                       Try a different food name.
                     </p>
                   </div>
@@ -898,7 +960,7 @@ export default function CalorieCounter() {
               </div>
             )}
 
-            <div className="mt-5 flex items-center gap-2 text-[10px] text-slate-400">
+            <div className="mt-5 flex items-center gap-2 text-[10px] text-black">
               <Utensils size={12} className="text-primary/70" />
               Calories and macros are read from the KapHealth food database;
               totals are recalculated by the server after every entry.
@@ -910,7 +972,7 @@ export default function CalorieCounter() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="eyebrow">Today</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                   Meal log
                 </h2>
               </div>
@@ -961,17 +1023,17 @@ export default function CalorieCounter() {
                         </span>
 
                         <div>
-                          <p className="text-xs font-semibold text-slate-800">
+                          <p className="text-xs font-semibold text-black">
                             {MEAL_LABEL[mealType]}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-black">
                             {mealEntries.length}{" "}
                             {mealEntries.length === 1 ? "item" : "items"}
                           </p>
                         </div>
                       </div>
 
-                      <span className="font-mono text-[10px] font-semibold text-slate-500">
+                      <span className="font-mono text-[10px] font-semibold text-black">
                         {mealCalories} kcal
                       </span>
                     </div>
@@ -986,10 +1048,10 @@ export default function CalorieCounter() {
                             className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 transition hover:bg-slate-50"
                           >
                             <div className="min-w-0">
-                              <p className="truncate text-[11px] font-medium text-slate-700">
+                              <p className="truncate text-[11px] font-medium text-black">
                                 {entry.name} × {entry.servings}
                               </p>
-                              <p className="text-[9px] text-slate-400">
+                              <p className="text-[9px] text-black">
                                 {entry.calories} kcal · P {Number(entry.proteinG || 0).toFixed(1)}g · C {Number(entry.carbsG || 0).toFixed(1)}g · F {Number(entry.fatG || 0).toFixed(1)}g
                               </p>
                             </div>
@@ -998,7 +1060,7 @@ export default function CalorieCounter() {
                               type="button"
                               onClick={() => removeEntry(entry._id)}
                               disabled={removing}
-                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-black transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                               aria-label={`Remove ${entry.name}`}
                             >
                               {removing ? (
@@ -1021,10 +1083,10 @@ export default function CalorieCounter() {
                     <Utensils size={21} />
                   </div>
 
-                  <p className="mt-3 text-xs font-semibold text-slate-700">
+                  <p className="mt-3 text-xs font-semibold text-black">
                     Your log is empty
                   </p>
-                  <p className="mt-1 text-[10px] leading-5 text-slate-400">
+                  <p className="mt-1 text-[10px] leading-5 text-black">
                     Search for a food above to start today's meal log.
                   </p>
                 </div>
@@ -1033,12 +1095,12 @@ export default function CalorieCounter() {
 
             {entries.length > 0 && (
               <div className="mt-5 flex items-center justify-between border-t border-slate-200/70 pt-4">
-                <span className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400">
+                <span className="flex items-center gap-1.5 text-[10px] font-medium text-black">
                   <CheckCircle2 size={12} className="text-primary" />
                   Logged meals
                 </span>
 
-                <span className="text-[10px] font-semibold text-slate-500">
+                <span className="text-[10px] font-semibold text-black">
                   {entries.length} total entries
                 </span>
               </div>

@@ -81,10 +81,11 @@ function GoalCard({ goal, selected, onClick }) {
       <span className="relative z-10 mt-5 block text-sm font-semibold">
         {goal.label}
       </span>
+
       <span
         className={[
           "relative z-10 mt-1 block text-[10px]",
-          selected ? "text-white/65" : "text-slate-400",
+          selected ? "text-white/70" : "text-slate-600",
         ].join(" ")}
       >
         {goal.short}
@@ -108,17 +109,17 @@ function MacroCard({ label, value, suffix, icon: Icon, tone }) {
 
           <TrendingUp
             size={14}
-            className="text-slate-300 transition duration-300 group-hover:-translate-y-0.5 group-hover:text-primary"
+            className="text-slate-500 transition duration-300 group-hover:-translate-y-0.5 group-hover:text-primary"
           />
         </div>
 
-        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-600">
           {label}
         </p>
 
         <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-slate-900">
           {value}
-          <span className="ml-1 text-sm font-medium text-slate-400">
+          <span className="ml-1 text-sm font-medium text-slate-600">
             {suffix}
           </span>
         </p>
@@ -130,43 +131,84 @@ function MacroCard({ label, value, suffix, icon: Icon, tone }) {
 export default function DietPlanner() {
   const [goal, setGoal] = useState("maintenance");
   const [plan, setPlan] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [bookingFor, setBookingFor] = useState({ type: "self" });
   const [error, setError] = useState("");
 
-  function loadActive() {
-    api
-      .get("/wellness/diet-plans/active", {
-        params: {
-          forDependentId: bookingFor.dependentId || undefined,
-        },
-      })
-      .then(({ data }) => setPlan(data.plan))
-      .catch(() => {});
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(loadActive, [bookingFor]);
+    async function loadActivePlan() {
+      setLoadingPlan(true);
+      setError("");
+      setPlan(null);
+
+      try {
+        const { data } = await api.get("/wellness/diet-plans/active", {
+          params: {
+            forDependentId: bookingFor.dependentId || undefined,
+          },
+        });
+
+        if (cancelled) return;
+
+        const activePlan = data?.plan || null;
+        setPlan(activePlan);
+
+        // Keep the selected card in sync with the saved plan, when possible.
+        if (activePlan?.goal && GOALS.some((item) => item.value === activePlan.goal)) {
+          setGoal(activePlan.goal);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err.response?.data?.message ||
+              "Couldn't load the saved diet plan. You can still try generating a new one."
+          );
+        }
+      } finally {
+        if (!cancelled) setLoadingPlan(false);
+      }
+    }
+
+    loadActivePlan();
+    return () => {
+      cancelled = true;
+    };
+  }, [bookingFor.dependentId, bookingFor.type]);
 
   async function generate() {
+    if (generating) return;
+
     setError("");
     setGenerating(true);
 
     try {
       const { data } = await api.post("/wellness/diet-plans/generate", {
         goal,
-        forDependentId: bookingFor.dependentId,
-        forDependentName: bookingFor.dependentName,
+        forDependentId: bookingFor.dependentId || undefined,
+        forDependentName: bookingFor.dependentName || undefined,
       });
+
+      if (!data?.plan) {
+        throw new Error("The server did not return a diet plan. Please try again.");
+      }
 
       setPlan(data.plan);
     } catch (err) {
       setError(
-        err.response?.data?.message || "Couldn't generate a plan."
+        err.response?.data?.message ||
+          err.message ||
+          "Couldn't generate a plan. Please add your height, weight, age and activity level in Vitals Tracker, then try again."
       );
     } finally {
       setGenerating(false);
     }
   }
+
+  const selectedGoalLabel = GOALS.find((item) => item.value === goal)?.label || "your goal";
+  const planGoalChanged = Boolean(plan?.goal && plan.goal !== goal);
 
   return (
     <div className="wellness-surface relative min-h-screen overflow-hidden">
@@ -344,30 +386,80 @@ export default function DietPlanner() {
           <div className="corner-reveal rounded-[2rem] border border-white/80 bg-white/60 p-7 shadow-[0_22px_70px_rgba(15,23,42,.07)] backdrop-blur-2xl sm:p-9">
             <div className="relative z-10">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="glass-pill inline-flex items-center gap-1.5">
-                  <Sparkles size={13} />
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #a7f3d0",
+                    color: "#047857",
+                    opacity: 1,
+                    WebkitTextFillColor: "#047857",
+                    fontSize: "9px",
+                    fontWeight: 800,
+                    letterSpacing: "0.12em",
+                  }}
+                >
+                  <Sparkles
+                    size={12}
+                    style={{ color: "#047857", strokeWidth: 2.5 }}
+                  />
                   Personal wellness
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-emerald-700">
-                  <HeartPulse size={11} />
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em]"
+                  style={{
+                    color: "#047857",
+                    WebkitTextFillColor: "#047857",
+                    opacity: 1,
+                  }}
+                >
+                  <HeartPulse size={11} style={{ color: "#047857" }} />
                   Smart planning
                 </span>
               </div>
 
-              <p className="eyebrow mt-7">Diet planner</p>
+              <p
+                className="eyebrow mt-7"
+                style={{
+                  color: "#0f6e5b",
+                  opacity: 1,
+                  WebkitTextFillColor: "#0f6e5b",
+                }}
+              >
+                Diet planner
+              </p>
 
-              <h1 className="mt-2 max-w-2xl font-display text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
+              <h1
+                className="mt-2 max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl"
+                style={{
+                  color: "#0f172a",
+                  opacity: 1,
+                  WebkitTextFillColor: "#0f172a",
+                }}
+              >
                 Build a plan that
-                <span className="block text-primary">
+                <span
+                  className="block"
+                  style={{
+                    color: "#0f6e5b",
+                    WebkitTextFillColor: "#0f6e5b",
+                  }}
+                >
                   fits your goal.
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">
-                Your calorie and macro targets are generated from your latest
-                logged vitals. Choose a direction, then let KapHealth build
-                the starting point.
+              <p
+                className="mt-4 max-w-2xl text-sm leading-6 sm:text-base"
+                style={{
+                  color: "#475569",
+                  opacity: 1,
+                  WebkitTextFillColor: "#475569",
+                }}
+              >
+                Your calorie and macro targets are generated from your latest logged vitals.
+                Choose a direction, then let KapHealth build the starting point.
               </p>
 
               <div className="mt-7">
@@ -431,13 +523,23 @@ export default function DietPlanner() {
           <div className="relative z-10">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="eyebrow">Step 01</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">
+                <p
+                  className="eyebrow"
+                  style={{
+                    color: "#0f6e5b",
+                    opacity: 1,
+                    WebkitTextFillColor: "#0f6e5b",
+                  }}
+                >
+                  Step 01
+                </p>
+
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
                   What's your goal?
                 </h2>
               </div>
 
-              <span className="text-[10px] font-medium text-ink/40">
+              <span className="text-[10px] font-medium text-slate-600">
                 Choose one target
               </span>
             </div>
@@ -457,7 +559,8 @@ export default function DietPlanner() {
               <button
                 type="button"
                 onClick={generate}
-                disabled={generating}
+                disabled={generating || loadingPlan}
+                aria-busy={generating}
                 className="glow-button inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {generating ? (
@@ -468,7 +571,9 @@ export default function DietPlanner() {
                 ) : (
                   <>
                     <Sparkles size={16} />
-                    {plan ? "Regenerate my plan" : "Generate my plan"}
+                    {plan && !planGoalChanged
+                      ? "Regenerate my plan"
+                      : `Generate ${selectedGoalLabel.toLowerCase()} plan`}
                     <ArrowRight
                       size={15}
                       className="transition-transform group-hover:translate-x-1"
@@ -477,22 +582,41 @@ export default function DietPlanner() {
                 )}
               </button>
 
-              <div className="flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/60 px-4 py-3 text-[10px] font-medium text-slate-500">
+              <div className="flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/60 px-4 py-3 text-[10px] font-medium text-slate-600">
                 <ShieldIcon />
-                Based on your latest vitals
+                {loadingPlan ? "Checking saved plan..." : "Based on your latest vitals"}
               </div>
             </div>
           </div>
         </section>
 
         {error && (
-          <div className="mt-4 rounded-2xl border border-red-100 bg-red-50/90 px-4 py-3 text-sm text-red-700 shadow-sm">
-            {error}
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-red-100 bg-red-50/90 px-4 py-3 text-sm text-red-700 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <p>{error}</p>
+            <Link
+              to="/patient/wellness/vitals"
+              className="inline-flex shrink-0 items-center gap-1.5 font-semibold text-red-800 underline underline-offset-4"
+            >
+              Open Vitals Tracker <ArrowRight size={13} />
+            </Link>
+          </div>
+        )}
+
+        {planGoalChanged && (
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Your saved plan is for <strong>{GOALS.find((item) => item.value === plan.goal)?.label || plan.goal}</strong>.
+            Click <strong>Generate {selectedGoalLabel.toLowerCase()} plan</strong> to update the plan for your newly selected goal.
+          </div>
+        )}
+
+        {loadingPlan && !plan && (
+          <div className="mt-7 rounded-2xl border border-slate-200 bg-white/70 p-5 text-sm text-slate-600">
+            Loading your saved diet plan…
           </div>
         )}
 
         {/* Empty state */}
-        {!plan && !error && !generating && (
+        {!loadingPlan && !plan && !error && !generating && (
           <section className="mt-7 grid gap-5 md:grid-cols-2">
             <div className="corner-reveal rounded-[2rem] border border-white/80 bg-white/60 p-7 shadow-sm backdrop-blur-xl">
               <div className="relative z-10">
@@ -500,11 +624,11 @@ export default function DietPlanner() {
                   <Target size={21} />
                 </div>
 
-                <h3 className="mt-5 text-xl font-semibold text-ink">
+                <h3 className="mt-5 text-xl font-semibold text-slate-900">
                   Your plan starts here.
                 </h3>
 
-                <p className="mt-2 text-sm leading-6 text-ink/55">
+                <p className="mt-2 text-sm leading-6 text-slate-600">
                   Pick a goal above and generate a personalised starting
                   target from your latest wellness data.
                 </p>
@@ -534,14 +658,26 @@ export default function DietPlanner() {
                 </div>
 
                 <div className="flip-face flip-back absolute inset-0 rounded-[2rem] bg-white p-7 shadow-xl">
-                  <p className="eyebrow">Next step</p>
-                  <h3 className="mt-2 text-xl font-semibold text-ink">
+                  <p
+                    className="eyebrow"
+                    style={{
+                      color: "#0f6e5b",
+                      opacity: 1,
+                      WebkitTextFillColor: "#0f6e5b",
+                    }}
+                  >
+                    Next step
+                  </p>
+
+                  <h3 className="mt-2 text-xl font-semibold text-slate-900">
                     Log what you eat.
                   </h3>
-                  <p className="mt-2 text-sm leading-6 text-ink/55">
+
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
                     Your calorie counter turns your target into a simple daily
                     feedback loop.
                   </p>
+
                   <Link
                     to="/patient/wellness/calorie-counter"
                     className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-primary"
@@ -561,8 +697,18 @@ export default function DietPlanner() {
             <section className="mt-7">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <p className="eyebrow">Step 02</p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
+                  <p
+                    className="eyebrow"
+                    style={{
+                      color: "#0f6e5b",
+                      opacity: 1,
+                      WebkitTextFillColor: "#0f6e5b",
+                    }}
+                  >
+                    Step 02
+                  </p>
+
+                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
                     Your daily targets
                   </h2>
                 </div>
@@ -584,7 +730,7 @@ export default function DietPlanner() {
 
                 <MacroCard
                   label="Protein"
-                  value={plan.macros.proteinG}
+                  value={plan.macros?.proteinG ?? "—"}
                   suffix="g"
                   icon={TrendingUp}
                   tone="bg-blue-300/20"
@@ -592,7 +738,7 @@ export default function DietPlanner() {
 
                 <MacroCard
                   label="Carbs"
-                  value={plan.macros.carbsG}
+                  value={plan.macros?.carbsG ?? "—"}
                   suffix="g"
                   icon={Utensils}
                   tone="bg-amber-300/20"
@@ -600,7 +746,7 @@ export default function DietPlanner() {
 
                 <MacroCard
                   label="Fat"
-                  value={plan.macros.fatG}
+                  value={plan.macros?.fatG ?? "—"}
                   suffix="g"
                   icon={HeartPulse}
                   tone="bg-rose-300/20"
@@ -612,8 +758,18 @@ export default function DietPlanner() {
               <div className="relative z-10">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="eyebrow">Step 03</p>
-                    <h2 className="mt-1 text-xl font-semibold text-ink">
+                    <p
+                      className="eyebrow"
+                      style={{
+                        color: "#0f6e5b",
+                        opacity: 1,
+                        WebkitTextFillColor: "#0f6e5b",
+                      }}
+                    >
+                      Step 03
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-semibold text-slate-900">
                       Sample day
                     </h2>
                   </div>
@@ -632,9 +788,9 @@ export default function DietPlanner() {
                 </div>
 
                 <div className="mt-6 grid gap-3 md:grid-cols-2">
-                  {plan.sampleMeals?.map((meal, index) => (
+                  {(Array.isArray(plan.sampleMeals) ? plan.sampleMeals : []).map((meal, index) => (
                     <div
-                      key={meal.mealType}
+                      key={`${meal.mealType || "meal"}-${index}`}
                       className="group rounded-2xl border border-slate-200/70 bg-white/60 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg"
                     >
                       <div className="flex items-center justify-between">
@@ -642,11 +798,13 @@ export default function DietPlanner() {
                           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             <Utensils size={15} />
                           </span>
+
                           <div>
-                            <p className="text-sm font-semibold text-ink">
-                              {MEAL_LABEL[meal.mealType]}
+                            <p className="text-sm font-semibold text-slate-900">
+                              {MEAL_LABEL[meal.mealType] || meal.mealType || `Meal ${index + 1}`}
                             </p>
-                            <p className="text-[9px] uppercase tracking-[.12em] text-ink/35">
+
+                            <p className="text-[9px] uppercase tracking-[.12em] text-slate-500">
                               Meal {String(index + 1).padStart(2, "0")}
                             </p>
                           </div>
@@ -654,31 +812,44 @@ export default function DietPlanner() {
 
                         <ChevronRight
                           size={15}
-                          className="text-slate-300 transition group-hover:translate-x-1 group-hover:text-primary"
+                          className="text-slate-500 transition group-hover:translate-x-1 group-hover:text-primary"
                         />
                       </div>
 
                       <div className="mt-4 space-y-2">
-                        {meal.items.map((item, i) => (
+                        {(Array.isArray(meal.items) ? meal.items : []).map((item, i) => (
                           <div
                             key={i}
                             className="flex items-center justify-between gap-4 border-t border-slate-100 pt-2 text-xs"
                           >
-                            <span className="min-w-0 text-ink/70">
-                              {item.name}{" "}
-                              <span className="text-ink/35">
-                                ({item.servingLabel})
-                              </span>
+                            <span className="min-w-0 text-slate-700">
+                              {item.name || "Food item"}{" "}
+                              {item.servingLabel && (
+                                <span className="text-slate-500">
+                                  ({item.servingLabel})
+                                </span>
+                              )}
                             </span>
 
-                            <span className="shrink-0 font-mono text-ink/55">
-                              {item.calories} kcal
+                            <span className="shrink-0 font-mono text-slate-600">
+                              {Number.isFinite(Number(item.calories)) ? `${item.calories} kcal` : "Calories n/a"}
                             </span>
                           </div>
                         ))}
                       </div>
                     </div>
                   ))}
+                  {(!Array.isArray(plan.sampleMeals) || plan.sampleMeals.length === 0) && (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-5 text-sm text-slate-600 md:col-span-2">
+                      Your calorie and macro targets are ready, but this saved plan has no sample meals. Open the calorie counter to log meals for today.
+                      <Link
+                        to="/patient/wellness/calorie-counter"
+                        className="ml-1 inline-flex items-center gap-1 font-semibold text-primary underline underline-offset-4"
+                      >
+                        Open calorie counter <ArrowRight size={12} />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
@@ -722,6 +893,7 @@ export default function DietPlanner() {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/20 to-transparent lg:bg-gradient-to-r" />
+
                   <div className="absolute bottom-5 right-5 rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-[9px] font-semibold uppercase tracking-[.12em] text-white/60 backdrop-blur-md">
                     Verified care
                   </div>

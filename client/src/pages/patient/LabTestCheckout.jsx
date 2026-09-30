@@ -6,7 +6,6 @@ import {
   Banknote,
   CalendarDays,
   Check,
-  CheckCircle2,
   ChevronRight,
   Clock3,
   CreditCard,
@@ -18,7 +17,6 @@ import {
   ShieldCheck,
   Sparkles,
   TestTube2,
-  Truck,
 } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
 import BookingForPicker from "../../components/BookingForPicker.jsx";
@@ -48,7 +46,7 @@ function tomorrow() {
 function Field({ label, children, className = "" }) {
   return (
     <div className={className}>
-      <label className="label">{label}</label>
+      <label className="label lab-field-label">{label}</label>
       {children}
     </div>
   );
@@ -64,7 +62,7 @@ function ScheduleCard({ value, selected, onClick }) {
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
         selected
           ? "border-primary/30 bg-primary text-white shadow-[0_12px_30px_rgba(15,110,91,.18)]"
-          : "border-slate-200/80 bg-white/65 text-slate-700 hover:-translate-y-0.5 hover:border-primary/25 hover:bg-white hover:shadow-md",
+          : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-primary/25 hover:bg-white hover:shadow-md",
       ].join(" ")}
     >
       <span
@@ -80,9 +78,7 @@ function ScheduleCard({ value, selected, onClick }) {
         <span
           className={[
             "flex h-8 w-8 items-center justify-center rounded-lg",
-            selected
-              ? "bg-white/15"
-              : "bg-primary/10 text-primary",
+            selected ? "bg-white/15" : "bg-primary/10 text-primary",
           ].join(" ")}
         >
           <Clock3 size={14} />
@@ -92,7 +88,7 @@ function ScheduleCard({ value, selected, onClick }) {
       </span>
 
       {selected && (
-        <span className="relative z-10 mt-3 flex items-center gap-1.5 text-[9px] font-semibold text-white/65">
+        <span className="relative z-10 mt-3 flex items-center gap-1.5 text-[9px] font-semibold text-white/80">
           <Check size={11} />
           Selected
         </span>
@@ -117,7 +113,7 @@ function PaymentOption({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
         selected
           ? "border-primary/25 bg-primary/[0.045] shadow-[0_12px_28px_rgba(15,110,91,.08)]"
-          : "border-slate-200/80 bg-white/60 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white",
+          : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white",
       ].join(" ")}
     >
       <span
@@ -134,17 +130,15 @@ function PaymentOption({
           "relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
           selected
             ? "bg-primary text-white"
-            : "bg-slate-100 text-slate-500 group-hover:bg-primary/10 group-hover:text-primary",
+            : "bg-slate-100 text-slate-700 group-hover:bg-primary/10 group-hover:text-primary",
         ].join(" ")}
       >
         {icon}
       </div>
 
       <div className="relative z-10 min-w-0 flex-1">
-        <p className="text-sm font-semibold text-slate-800">
-          {title}
-        </p>
-        <p className="mt-1 text-[10px] leading-4 text-slate-400">
+        <p className="text-sm font-semibold text-slate-900">{title}</p>
+        <p className="mt-1 text-[10px] leading-4 text-slate-600">
           {description}
         </p>
       </div>
@@ -165,17 +159,17 @@ function PaymentOption({
 
 function TestSummaryRow({ test }) {
   return (
-    <div className="group flex items-center justify-between gap-4 rounded-2xl border border-slate-200/70 bg-white/55 p-4 transition hover:border-primary/15 hover:bg-white/75">
+    <div className="group flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-primary/15 hover:bg-white">
       <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <TestTube2 size={16} />
         </div>
 
         <div className="min-w-0">
-          <p className="truncate text-xs font-semibold text-slate-800 sm:text-sm">
+          <p className="truncate text-xs font-semibold text-slate-900 sm:text-sm">
             {test.name}
           </p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.1em] text-slate-400">
+          <p className="mt-1 text-[9px] uppercase tracking-[0.1em] text-slate-600">
             Diagnostic test
           </p>
         </div>
@@ -321,147 +315,94 @@ export default function LabTestCheckout() {
 
   if (tests.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f4f9f6]">
+      <div className="lab-checkout-page min-h-screen bg-white text-black">
         <Navbar />
       </div>
     );
   }
 
   return (
-    <div className="lab-checkout-page relative min-h-screen overflow-hidden bg-[#f4f9f6]">
+    <div className="lab-checkout-page relative min-h-screen overflow-hidden bg-white text-black">
       <Navbar />
 
       <style>{`
         .lab-checkout-page {
-          background:
-            radial-gradient(circle at 8% 7%, rgba(15,110,91,.08), transparent 29rem),
-            radial-gradient(circle at 92% 28%, rgba(16,185,129,.055), transparent 27rem),
-            #f4f9f6;
+          background: #ffffff !important;
+          color: #000000 !important;
         }
 
-        .lab-checkout-page::before {
-          content: "";
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          opacity: .35;
-          background-image:
-            linear-gradient(rgba(15,110,91,.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(15,110,91,.035) 1px, transparent 1px);
-          background-size: 50px 50px;
-          mask-image: linear-gradient(to bottom, black, transparent 82%);
+        /* Force readable text on this checkout page. */
+        .lab-checkout-page h1,
+        .lab-checkout-page h2,
+        .lab-checkout-page h3,
+        .lab-checkout-page p,
+        .lab-checkout-page label,
+        .lab-checkout-page .label,
+        .lab-checkout-page .eyebrow,
+        .lab-checkout-page a,
+        .lab-checkout-page input,
+        .lab-checkout-page select,
+        .lab-checkout-page textarea {
+          color: #000000 !important;
         }
 
-        .lab-corner {
-          position: relative;
-          overflow: hidden;
+        .lab-checkout-page .input {
+          width: 100%;
+          background: #ffffff !important;
+          color: #000000 !important;
+          caret-color: #000000 !important;
+          border-color: #1f2937 !important;
         }
 
-        .lab-corner::before,
-        .lab-corner::after {
-          content: "";
-          position: absolute;
-          width: 18%;
-          height: 18%;
-          pointer-events: none;
-          background: rgba(15,110,91,.045);
-          transition: all .5s cubic-bezier(.22,1,.36,1);
+        .lab-checkout-page .input::placeholder {
+          color: #64748b !important;
+          opacity: 1 !important;
         }
 
-        .lab-corner::before {
-          top: 0;
-          right: 0;
-          border-radius: 0 2rem 0 100%;
+        .lab-checkout-page .input:focus {
+          color: #000000 !important;
+          border-color: #0f6e5b !important;
+          outline: none !important;
         }
 
-        .lab-corner::after {
-          bottom: 0;
-          left: 0;
-          border-radius: 0 100% 0 2rem;
-          background: rgba(15,110,91,.03);
+        .lab-checkout-page .lab-field-label {
+          color: #111827 !important;
         }
 
-        .lab-corner:hover::before,
-        .lab-corner:hover::after {
-          width: 78%;
-          height: 78%;
-          border-radius: 2rem;
+        .lab-checkout-page .eyebrow {
+          color: #0f766e !important;
         }
 
-        .promo-shine::after {
-          content: "";
-          position: absolute;
-          top: -35%;
-          left: -30%;
-          width: 15%;
-          height: 170%;
-          transform: rotate(18deg);
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,.18),
-            transparent
-          );
-          animation: lab-checkout-shine 6s ease-in-out infinite;
-          pointer-events: none;
+        /* Keep intentionally dark promo/footer sections readable. */
+        .lab-checkout-page .dark-panel,
+        .lab-checkout-page .dark-panel h1,
+        .lab-checkout-page .dark-panel h2,
+        .lab-checkout-page .dark-panel h3,
+        .lab-checkout-page .dark-panel p,
+        .lab-checkout-page .dark-panel span,
+        .lab-checkout-page .dark-panel a {
+          color: #ffffff !important;
         }
 
-        .submit-button {
-          position: relative;
-          isolation: isolate;
+        .lab-checkout-page .dark-panel .muted {
+          color: rgba(255,255,255,.72) !important;
         }
 
-        .submit-button::before {
-          content: "";
-          position: absolute;
-          inset: -2px;
-          z-index: -1;
-          border-radius: 999px;
-          background: linear-gradient(
-            135deg,
-            #0f6e5b,
-            #34b399,
-            #95e4d0,
-            #0f6e5b
-          );
-          background-size: 300% 300%;
-          animation: lab-checkout-gradient 7s ease infinite;
-          filter: blur(5px);
-          opacity: .6;
-        }
-
-        @keyframes lab-checkout-shine {
-          0%, 45% { left: -30%; }
-          75%, 100% { left: 130%; }
-        }
-
-        @keyframes lab-checkout-gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .lab-corner::before,
-          .lab-corner::after,
-          .promo-shine::after,
-          .submit-button::before {
-            transition: none !important;
-            animation: none !important;
-          }
+        .lab-checkout-page .dark-panel .subtle {
+          color: rgba(255,255,255,.55) !important;
         }
       `}</style>
 
-      <div className="pointer-events-none absolute -left-56 top-16 h-[34rem] w-[34rem] rounded-full bg-primary/[0.08] blur-3xl" />
-      <div className="pointer-events-none absolute -right-48 bottom-0 h-[34rem] w-[34rem] rounded-full bg-accent/[0.05] blur-3xl" />
+      <div className="pointer-events-none absolute -left-56 top-16 h-[34rem] w-[34rem] rounded-full bg-primary/[0.04] blur-3xl" />
+      <div className="pointer-events-none absolute -right-48 bottom-0 h-[34rem] w-[34rem] rounded-full bg-accent/[0.03] blur-3xl" />
 
       <main className="relative mx-auto max-w-7xl px-5 py-7 sm:px-6 lg:px-8 lg:py-10">
-        {/* Header */}
         <div className="mb-6">
           <Link
             to="/patient/lab-tests"
-            className="group inline-flex items-center gap-2 text-xs font-semibold text-slate-500 transition hover:text-primary"
+            className="group inline-flex items-center gap-2 text-xs font-semibold text-slate-800 transition hover:text-primary"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/80 bg-white/70 shadow-sm backdrop-blur-xl transition group-hover:-translate-x-0.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:-translate-x-0.5">
               <ArrowLeft size={14} />
             </span>
             Back to lab tests
@@ -474,31 +415,30 @@ export default function LabTestCheckout() {
                 Diagnostic checkout
               </p>
 
-              <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-black sm:text-4xl">
                 Confirm your lab booking.
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700">
                 Select a collection slot, add your address, choose payment,
                 and complete your diagnostic booking.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 rounded-full border border-white/80 bg-white/65 px-3 py-2 text-[10px] font-semibold text-slate-500 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold text-slate-800 shadow-sm">
               <ShieldCheck size={13} className="text-primary" />
               Secure booking
             </div>
           </div>
         </div>
 
-        {/* Progress */}
-        <div className="mb-5 rounded-2xl border border-white/80 bg-white/60 p-3 shadow-sm backdrop-blur-xl">
+        <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
           <div className="flex items-center">
             <div className="flex flex-1 items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                 <Check size={13} />
               </span>
-              <span className="text-[11px] font-semibold text-slate-800">
+              <span className="text-[11px] font-semibold text-slate-900">
                 Tests
               </span>
             </div>
@@ -509,7 +449,7 @@ export default function LabTestCheckout() {
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                 2
               </span>
-              <span className="text-[11px] font-semibold text-slate-800">
+              <span className="text-[11px] font-semibold text-slate-900">
                 Schedule
               </span>
             </div>
@@ -520,7 +460,7 @@ export default function LabTestCheckout() {
               <span className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-[10px] font-bold text-primary">
                 3
               </span>
-              <span className="text-[11px] font-medium text-slate-500">
+              <span className="text-[11px] font-medium text-slate-700">
                 Payment
               </span>
             </div>
@@ -529,15 +469,13 @@ export default function LabTestCheckout() {
 
         <form onSubmit={submit}>
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_390px]">
-            {/* Left */}
             <div className="space-y-5">
-              {/* Tests */}
               <SectionShell className="lab-corner p-6 sm:p-7">
                 <div className="relative z-10">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="eyebrow">01 · Selection</p>
-                      <h2 className="mt-1 text-xl font-semibold text-slate-900">
+                      <h2 className="mt-1 text-xl font-semibold text-black">
                         Tests in this booking
                       </h2>
                     </div>
@@ -549,20 +487,16 @@ export default function LabTestCheckout() {
 
                   <div className="mt-5 space-y-2.5">
                     {tests.map((test) => (
-                      <TestSummaryRow
-                        key={test._id}
-                        test={test}
-                      />
+                      <TestSummaryRow key={test._id} test={test} />
                     ))}
                   </div>
                 </div>
               </SectionShell>
 
-              {/* Booking for */}
               <SectionShell className="lab-corner p-6 sm:p-7">
                 <div className="relative z-10">
                   <p className="eyebrow">02 · Patient</p>
-                  <h2 className="mt-1 text-xl font-semibold text-slate-900">
+                  <h2 className="mt-1 text-xl font-semibold text-black">
                     Who is this booking for?
                   </h2>
 
@@ -575,18 +509,17 @@ export default function LabTestCheckout() {
                 </div>
               </SectionShell>
 
-              {/* Schedule */}
               <SectionShell className="lab-corner p-6 sm:p-7">
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="eyebrow">03 · Collection</p>
-                      <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                         Pick a collection slot
                       </h2>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">
-                        At-home collection is scheduled for the selected
-                        date and time window.
+                      <p className="mt-1 text-xs leading-5 text-slate-700">
+                        At-home collection is scheduled for the selected date
+                        and time window.
                       </p>
                     </div>
 
@@ -603,15 +536,13 @@ export default function LabTestCheckout() {
                         required
                         min={tomorrow()}
                         value={scheduledDate}
-                        onChange={(e) =>
-                          setScheduledDate(e.target.value)
-                        }
+                        onChange={(e) => setScheduledDate(e.target.value)}
                       />
                     </Field>
                   </div>
 
                   <div className="mt-5">
-                    <p className="label">Collection window</p>
+                    <p className="label lab-field-label">Collection window</p>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {TIME_SLOTS.map((slot) => (
                         <ScheduleCard
@@ -626,13 +557,12 @@ export default function LabTestCheckout() {
                 </div>
               </SectionShell>
 
-              {/* Address */}
               <SectionShell className="lab-corner p-6 sm:p-7">
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="eyebrow">04 · Collection address</p>
-                      <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                         Where should the sample be collected?
                       </h2>
                     </div>
@@ -656,10 +586,7 @@ export default function LabTestCheckout() {
                       />
                     </Field>
 
-                    <Field
-                      label="Address line 2"
-                      className="sm:col-span-2"
-                    >
+                    <Field label="Address line 2" className="sm:col-span-2">
                       <input
                         className="input h-12"
                         placeholder="Area, landmark (optional)"
@@ -708,9 +635,7 @@ export default function LabTestCheckout() {
                         onChange={(e) =>
                           updateAddress(
                             "pincode",
-                            e.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 6)
+                            e.target.value.replace(/\D/g, "").slice(0, 6)
                           )
                         }
                       />
@@ -731,7 +656,7 @@ export default function LabTestCheckout() {
                     </Field>
                   </div>
 
-                  <div className="mt-5 flex items-center gap-2 rounded-xl border border-primary/10 bg-primary/[0.035] px-3.5 py-3 text-[10px] leading-5 text-slate-500">
+                  <div className="mt-5 flex items-center gap-2 rounded-xl border border-primary/10 bg-primary/[0.035] px-3.5 py-3 text-[10px] leading-5 text-slate-700">
                     <Home size={13} className="shrink-0 text-primary" />
                     Please ensure someone is available during the selected
                     collection window.
@@ -739,13 +664,12 @@ export default function LabTestCheckout() {
                 </div>
               </SectionShell>
 
-              {/* Payment */}
               <SectionShell className="lab-corner p-6 sm:p-7">
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="eyebrow">05 · Payment</p>
-                      <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                      <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                         Choose how to pay
                       </h2>
                     </div>
@@ -784,10 +708,9 @@ export default function LabTestCheckout() {
               </SectionShell>
             </div>
 
-            {/* Right summary */}
             <aside className="lg:sticky lg:top-24 lg:self-start">
-              <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 shadow-[0_25px_75px_rgba(15,23,42,.09)] backdrop-blur-2xl">
-                <div className="promo-shine relative overflow-hidden bg-gradient-to-br from-[#0F6E5B] to-[#073E35] text-white">
+              <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_25px_75px_rgba(15,23,42,.09)]">
+                <div className="dark-panel promo-shine relative overflow-hidden bg-gradient-to-br from-[#0F6E5B] to-[#073E35] text-white">
                   <img
                     src={LAB_PROMO_IMAGE}
                     alt="Laboratory diagnostics"
@@ -802,12 +725,12 @@ export default function LabTestCheckout() {
                         <FlaskConical size={17} />
                       </div>
 
-                      <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.12em] text-white/55">
+                      <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.12em] text-white/80">
                         Diagnostic checkout
                       </span>
                     </div>
 
-                    <p className="mt-7 text-[10px] font-bold uppercase tracking-[.15em] text-emerald-200/55">
+                    <p className="mt-7 text-[10px] font-bold uppercase tracking-[.15em] text-emerald-200">
                       Total payable
                     </p>
 
@@ -815,9 +738,8 @@ export default function LabTestCheckout() {
                       ₹{total}
                     </p>
 
-                    <p className="mt-1 text-xs text-white/45">
-                      {tests.length}{" "}
-                      {tests.length === 1 ? "test" : "tests"} selected
+                    <p className="mt-1 text-xs text-white/80">
+                      {tests.length} {tests.length === 1 ? "test" : "tests"} selected
                     </p>
                   </div>
                 </div>
@@ -842,47 +764,35 @@ export default function LabTestCheckout() {
                     />
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-slate-200/70 bg-white/55 p-4">
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
                     <div className="flex items-center gap-2">
-                      <PackageCheck
-                        size={15}
-                        className="text-primary"
-                      />
-                      <p className="text-xs font-semibold text-slate-800">
+                      <PackageCheck size={15} className="text-primary" />
+                      <p className="text-xs font-semibold text-slate-900">
                         Collection summary
                       </p>
                     </div>
 
                     <div className="mt-3 space-y-2 text-[10px]">
                       <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">
-                          Patient
-                        </span>
-                        <span className="text-right font-semibold text-slate-700">
+                        <span className="text-slate-600">Patient</span>
+                        <span className="text-right font-semibold text-slate-900">
                           {bookingFor.type === "self"
                             ? "You"
-                            : bookingFor.dependentName ||
-                              "Family member"}
+                            : bookingFor.dependentName || "Family member"}
                         </span>
                       </div>
 
                       <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">
-                          Collection
-                        </span>
-                        <span className="text-right font-semibold text-slate-700">
+                        <span className="text-slate-600">Collection</span>
+                        <span className="text-right font-semibold text-slate-900">
                           At home
                         </span>
                       </div>
 
                       <div className="flex justify-between gap-4">
-                        <span className="text-slate-400">
-                          Payment
-                        </span>
-                        <span className="text-right font-semibold capitalize text-slate-700">
-                          {paymentMethod === "cod"
-                            ? "Pay at home"
-                            : "Online"}
+                        <span className="text-slate-600">Payment</span>
+                        <span className="text-right font-semibold capitalize text-slate-900">
+                          {paymentMethod === "cod" ? "Pay at home" : "Online"}
                         </span>
                       </div>
                     </div>
@@ -890,35 +800,31 @@ export default function LabTestCheckout() {
 
                   <div className="mt-5 space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">
-                        Tests subtotal
-                      </span>
-                      <span className="font-medium text-slate-800">
+                      <span className="text-slate-700">Tests subtotal</span>
+                      <span className="font-medium text-slate-900">
                         ₹{total}
                       </span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-slate-500">
-                        Collection
-                      </span>
-                      <span className="font-medium text-slate-800">
+                      <span className="text-slate-700">Collection</span>
+                      <span className="font-medium text-slate-900">
                         Included
                       </span>
                     </div>
 
-                    <div className="border-t border-slate-200/70 pt-4">
+                    <div className="border-t border-slate-200 pt-4">
                       <div className="flex items-end justify-between gap-4">
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-black">
                             Total
                           </p>
-                          <p className="mt-1 text-[10px] text-slate-400">
+                          <p className="mt-1 text-[10px] text-slate-600">
                             Final booking amount
                           </p>
                         </div>
 
-                        <span className="font-mono text-xl font-semibold text-slate-950">
+                        <span className="font-mono text-xl font-semibold text-black">
                           ₹{total}
                         </span>
                       </div>
@@ -949,7 +855,7 @@ export default function LabTestCheckout() {
                     )}
                   </button>
 
-                  <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                  <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-600">
                     <LockKeyhole size={12} className="text-primary/70" />
                     Secure diagnostic booking
                   </div>
@@ -958,7 +864,7 @@ export default function LabTestCheckout() {
                     href={LAB_PROMO_VIDEO_PAGE}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 flex items-center justify-center gap-1.5 text-[10px] font-semibold text-slate-400 transition hover:text-primary"
+                    className="mt-4 flex items-center justify-center gap-1.5 text-[10px] font-semibold text-slate-600 transition hover:text-primary"
                   >
                     <Sparkles size={12} />
                     Explore laboratory media
@@ -970,7 +876,7 @@ export default function LabTestCheckout() {
           </div>
         </form>
 
-        <section className="mt-7 rounded-[2rem] bg-slate-950 p-6 text-white shadow-[0_25px_75px_rgba(15,23,42,.14)] sm:p-8">
+        <section className="dark-panel mt-7 rounded-[2rem] bg-slate-950 p-6 text-white shadow-[0_25px_75px_rgba(15,23,42,.14)] sm:p-8">
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
             <div>
               <div className="flex items-center gap-2 text-emerald-300">
@@ -984,7 +890,7 @@ export default function LabTestCheckout() {
                 From collection to report, keep everything connected.
               </h2>
 
-              <p className="mt-2 max-w-xl text-sm leading-6 text-white/50">
+              <p className="muted mt-2 max-w-xl text-sm leading-6">
                 Once your booking is complete, track the collection status and
                 access the final report from your lab booking page.
               </p>
@@ -1011,9 +917,8 @@ function SectionShell({ children, className = "" }) {
   return (
     <section
       className={[
-        "relative overflow-hidden rounded-[2rem] border border-white/80",
-        "bg-white/65 shadow-[0_20px_65px_rgba(15,23,42,.07)]",
-        "backdrop-blur-2xl",
+        "relative overflow-hidden rounded-[2rem] border border-slate-200",
+        "bg-white shadow-[0_20px_65px_rgba(15,23,42,.07)]",
         className,
       ].join(" ")}
     >
@@ -1024,15 +929,15 @@ function SectionShell({ children, className = "" }) {
 
 function SummaryStat({ icon, label, value }) {
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white/55 p-3">
-      <div className="flex items-center gap-1.5 text-slate-400">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3">
+      <div className="flex items-center gap-1.5 text-slate-700">
         <span className="text-primary">{icon}</span>
         <p className="text-[9px] font-bold uppercase tracking-[.12em]">
           {label}
         </p>
       </div>
 
-      <p className="mt-2 truncate text-xs font-semibold text-slate-800">
+      <p className="mt-2 truncate text-xs font-semibold text-slate-900">
         {value}
       </p>
     </div>

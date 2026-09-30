@@ -85,9 +85,37 @@ export default function DoctorOnboarding() {
     );
   }
 
-  return (
-    <div className="min-h-screen">
+ return (
+  <div className="doctor-onboarding min-h-screen">
       <Navbar />
+       <style>{`
+      .doctor-onboarding input,
+      .doctor-onboarding textarea,
+      .doctor-onboarding select {
+        color: #0f172a !important;
+        background-color: #ffffff !important;
+        caret-color: #0f172a;
+      }
+
+      .doctor-onboarding input::placeholder,
+      .doctor-onboarding textarea::placeholder {
+        color: #94a3b8 !important;
+        opacity: 1;
+      }
+
+      .doctor-onboarding select option {
+        color: #0f172a !important;
+        background-color: #ffffff !important;
+      }
+
+      .doctor-onboarding input:focus,
+      .doctor-onboarding textarea:focus,
+      .doctor-onboarding select:focus {
+        color: #0f172a !important;
+        background-color: #ffffff !important;
+        outline: none;
+      }
+    `}</style>
       <div className="mx-auto max-w-2xl px-6 py-12">
         <p className="eyebrow mb-2">Doctor onboarding</p>
         <h1 className="font-display text-2xl font-medium">Tell us about you, {user?.name?.split(" ")[0] || "doctor"}</h1>

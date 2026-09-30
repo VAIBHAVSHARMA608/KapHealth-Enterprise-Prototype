@@ -49,7 +49,7 @@ const TYPE_META = {
   },
 };
 
-function ReviewCard({ review, index }) {
+function ReviewCard({ review, index, onDelete, deleting }) {
   const image = review.imageUrls?.[0];
 
   return (
@@ -73,6 +73,33 @@ function ReviewCard({ review, index }) {
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
 
+              <div className="absolute right-3 top-3">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    if (
+                      window.confirm(
+                        "Are you sure you want to delete this AI review?"
+                      )
+                    ) {
+                      onDelete(review._id);
+                    }
+                  }}
+                  disabled={deleting}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white backdrop-blur-md transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Delete AI review"
+                  title="Delete review"
+                >
+                  {deleting ? (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                </button>
+              </div>
+
               <div className="absolute inset-x-3 bottom-3">
                 <span className="inline-flex rounded-full border border-white/20 bg-black/20 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-md">
                   Review {String(index + 1).padStart(2, "0")}
@@ -90,9 +117,30 @@ function ReviewCard({ review, index }) {
                     <Sparkles size={15} />
                   </span>
 
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                    AI Review
-                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete this AI review?"
+                        )
+                      ) {
+                        onDelete(review._id);
+                      }
+                    }}
+                    disabled={deleting}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white/70 transition hover:bg-red-500 hover:text-white disabled:opacity-60"
+                    aria-label="Delete AI review"
+                    title="Delete review"
+                  >
+                    {deleting ? (
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    ) : (
+                      <Trash2 size={13} />
+                    )}
+                  </button>
                 </div>
 
                 <div className="mt-auto">
@@ -117,6 +165,7 @@ function ReviewCard({ review, index }) {
 
 export default function AiReviewer() {
   const [type, setType] = useState("physique");
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [notes, setNotes] = useState("");
@@ -197,6 +246,32 @@ export default function AiReviewer() {
     });
   }
 
+  async function deleteReview(reviewId) {
+    if (!reviewId) return;
+
+    setDeletingReviewId(reviewId);
+    setError("");
+
+    try {
+      await api.delete(`/wellness/ai-review/${reviewId}`);
+
+      setHistory((items) =>
+        items.filter((review) => review._id !== reviewId)
+      );
+
+      if (result?._id === reviewId) {
+        setResult(null);
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Couldn't delete this AI review."
+      );
+    } finally {
+      setDeletingReviewId(null);
+    }
+  }
+
   async function submit() {
     if (files.length === 0) {
       setError("Add at least one photo first.");
@@ -236,8 +311,88 @@ export default function AiReviewer() {
   }
 
   return (
-    <div className="wellness-surface relative min-h-screen overflow-hidden">
+    <div className="ai-review-page wellness-surface relative min-h-screen overflow-hidden text-black">
       <Navbar />
+
+      <style>{`
+        .ai-review-page {
+          color: #000000;
+        }
+
+        .ai-review-page .text-slate-950,
+        .ai-review-page .text-slate-900,
+        .ai-review-page .text-slate-800,
+        .ai-review-page .text-slate-700,
+        .ai-review-page .text-slate-600,
+        .ai-review-page .text-slate-500,
+        .ai-review-page .text-slate-400,
+        .ai-review-page .text-slate-300 {
+          color: #000000 !important;
+        }
+
+        .ai-review-page .text-primary {
+          color: #000000 !important;
+        }
+
+        .ai-review-page input,
+        .ai-review-page textarea,
+        .ai-review-page select {
+          color: #000000 !important;
+          -webkit-text-fill-color: #000000 !important;
+          caret-color: #000000 !important;
+        }
+
+        .ai-review-page input::placeholder,
+        .ai-review-page textarea::placeholder {
+          color: #555555 !important;
+          -webkit-text-fill-color: #555555 !important;
+          opacity: 1 !important;
+        }
+
+        .ai-review-page .input {
+          color: #000000 !important;
+          background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .ai-review-page .input:focus {
+          color: #000000 !important;
+          -webkit-text-fill-color: #000000 !important;
+        }
+
+        .ai-review-page .label {
+          color: #000000 !important;
+        }
+
+        /* Dark cards keep their white text */
+        .ai-review-page .text-white,
+        .ai-review-page .text-white\\/45,
+        .ai-review-page .text-white\\/55,
+        .ai-review-page .text-white\\/70,
+        .ai-review-page .text-white\\/75 {
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+        }
+
+        .ai-review-page .text-emerald-200 {
+          color: #a7f3d0 !important;
+        }
+
+        .ai-review-page .text-red-700 {
+          color: #b91c1c !important;
+        }
+
+        .ai-review-page .text-amber-600 {
+          color: #d97706 !important;
+        }
+
+        .ai-review-page .text-amber-800 {
+          color: #92400e !important;
+        }
+
+        .ai-review-page button {
+          caret-color: transparent;
+        }
+      `}</style>
 
       {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -253,10 +408,10 @@ export default function AiReviewer() {
           <div className="rounded-[2rem] border border-white/80 bg-white/65 p-7 shadow-[0_18px_55px_rgba(15,23,42,0.065)] backdrop-blur-2xl sm:p-9">
             <div className="flex items-start justify-between gap-5">
               <div>
-                <div className="glass-pill">
-                  <Sparkles size={13} className="text-primary" />
-                  AI wellness studio
-                </div>
+                <div className="glass-pill text-slate-900">
+  <Sparkles size={13} className="text-slate-900" />
+  AI wellness studio
+</div>
 
                 <p className="eyebrow mt-6 flex items-center gap-2">
                   <Sparkles size={13} />
@@ -648,6 +803,8 @@ export default function AiReviewer() {
                       key={review._id}
                       review={review}
                       index={index}
+                      onDelete={deleteReview}
+                      deleting={deletingReviewId === review._id}
                     />
                   ))}
                 </div>
