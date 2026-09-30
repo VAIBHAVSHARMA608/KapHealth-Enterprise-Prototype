@@ -95,7 +95,16 @@ function MedicineCard({ med, saved, adding, onToggleWishlist, onAdd }) {
 
         <div className="mt-4">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[8px] font-bold uppercase tracking-[.13em] text-slate-300">
+            <span
+              className="text-[10px] font-bold uppercase tracking-[.12em]"
+              style={{
+                color: "#0f6e5b",
+                opacity: 1,
+                visibility: "visible",
+                display: "inline-block",
+                WebkitTextFillColor: "#0f6e5b",
+              }}
+            >
               KapHealth Store
             </span>
 
@@ -583,8 +592,24 @@ export default function Store() {
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="glass-pill inline-flex items-center gap-1.5">
-                  <ShoppingCart size={13} className="text-primary" />
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #a7f3d0",
+                    color: "#047857",
+                    opacity: 1,
+                    visibility: "visible",
+                    WebkitTextFillColor: "#047857",
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  <ShoppingCart
+                    size={14}
+                    style={{ color: "#047857", strokeWidth: 2.5 }}
+                  />
                   KapHealth Store
                 </span>
 

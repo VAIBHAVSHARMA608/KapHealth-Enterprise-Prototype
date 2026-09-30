@@ -443,10 +443,29 @@ export default function MyAppointments() {
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="glass-pill inline-flex items-center gap-1.5">
-                  <CalendarDays size={13} className="text-primary" />
-                  Appointment hub
-                </span>
+                <span
+  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5"
+  style={{
+    backgroundColor: "#ecfdf5",
+    border: "1px solid #a7f3d0",
+    color: "#047857",
+    opacity: 1,
+    visibility: "visible",
+    WebkitTextFillColor: "#047857",
+    fontSize: "9px",
+    fontWeight: 800,
+    letterSpacing: "0.13em",
+  }}
+>
+  <CalendarDays
+    size={13}
+    style={{
+      color: "#047857",
+      strokeWidth: 2.5,
+    }}
+  />
+  Appointment Hub
+</span>
 
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">
                   <ShieldCheck size={11} />

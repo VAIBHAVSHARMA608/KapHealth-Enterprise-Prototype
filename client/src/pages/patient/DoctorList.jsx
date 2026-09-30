@@ -60,7 +60,7 @@ function DoctorCard({ doctor }) {
         </div>
 
         <div className="relative z-10 mt-5">
-          <h3 className="font-display text-xl font-semibold text-ink transition group-hover:text-primary">
+          <h3 className="font-display text-xl font-semibold text-slate-900 transition group-hover:text-primary">
             {doctor.user.name}
           </h3>
 
@@ -253,15 +253,12 @@ export default function DoctorList() {
   }, [search]);
 
   return (
-    <div className="doctor-list-page min-h-screen overflow-hidden">
+    <div className="doctor-list-page min-h-screen overflow-hidden bg-white text-slate-900">
       <Navbar />
 
       <style>{`
         .doctor-list-page {
-          background:
-            radial-gradient(circle at 8% 8%, rgba(15,110,91,.08), transparent 28rem),
-            radial-gradient(circle at 92% 30%, rgba(16,185,129,.06), transparent 26rem),
-            #f8fafc;
+          background: #ffffff;
         }
 
         .doctor-list-page::before {
@@ -275,6 +272,20 @@ export default function DoctorList() {
             linear-gradient(90deg, rgba(15,110,91,.035) 1px, transparent 1px);
           background-size: 46px 46px;
           mask-image: linear-gradient(to bottom, black, transparent 80%);
+        }
+
+        input,
+        textarea,
+        select {
+          color: #0f172a !important;
+          background-color: #ffffff !important;
+          caret-color: #0f172a !important;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1;
         }
 
         .search-shell {
@@ -336,27 +347,27 @@ export default function DoctorList() {
 
       <main className="relative mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
         <section className="grid gap-6 lg:grid-cols-[1fr_300px]">
-          <div className="rounded-[2rem] border border-white/80 bg-white/65 p-7 shadow-[0_20px_70px_rgba(15,23,42,.06)] backdrop-blur-2xl sm:p-9">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-[0_20px_70px_rgba(15,23,42,.06)] sm:p-9">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="glass-pill inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-emerald-700">
                 <ShieldCheck size={13} />
                 Verified care
               </span>
-              <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-emerald-700">
+              <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-emerald-700">
                 Video consultations
               </span>
             </div>
 
             <p className="eyebrow mt-6">Find a doctor</p>
 
-            <h1 className="mt-1 max-w-2xl font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-1 max-w-2xl font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
               Meet the right doctor.
               <span className="block text-primary">
                 Book when you're ready.
               </span>
             </h1>
 
-            <p className="mt-4 max-w-xl text-sm leading-6 text-muted sm:text-base">
+            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
               Browse verified specialists, compare consultation fees, and
               choose a doctor for a secure online consultation.
             </p>
@@ -368,7 +379,7 @@ export default function DoctorList() {
                   size={18}
                 />
                 <input
-                  className="w-full border-0 bg-transparent px-3 py-3 text-sm text-ink outline-none placeholder:text-slate-400"
+                  className="w-full border-0 bg-white px-3 py-3 text-sm font-medium text-slate-900 caret-slate-900 outline-none placeholder:text-slate-400 focus:text-slate-900"
                   placeholder="Search by name or specialty..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -395,7 +406,7 @@ export default function DoctorList() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="eyebrow">Available specialists</p>
-              <h2 className="mt-1 text-xl font-semibold text-ink">
+              <h2 className="mt-1 text-xl font-semibold text-slate-900">
                 {search ? `Results for "${search}"` : "Verified doctors"}
               </h2>
             </div>
@@ -423,10 +434,10 @@ export default function DoctorList() {
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Stethoscope size={25} />
               </div>
-              <h3 className="mt-5 text-lg font-semibold text-ink">
+              <h3 className="mt-5 text-lg font-semibold text-slate-900">
                 No doctors found
               </h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+              <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
                 Try another name or specialty, or check back soon for newly
                 verified doctors.
               </p>

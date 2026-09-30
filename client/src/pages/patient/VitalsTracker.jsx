@@ -93,35 +93,46 @@ const MEASUREMENT_FIELDS = [
   { key: "thigh", label: "Thigh" },
 ];
 
-
 function calculateLocalBmi(heightCm, weightKg) {
   const h = Number(heightCm);
   const w = Number(weightKg);
+
   if (!h || !w || h <= 0 || w <= 0) return null;
 
   const bmi = w / ((h / 100) ** 2);
+
   return Number(bmi.toFixed(1));
 }
 
 function getLocalBmiCategory(bmi) {
   const value = Number(bmi);
+
   if (!Number.isFinite(value)) return "—";
   if (value < 18.5) return "Underweight";
   if (value < 25) return "Healthy weight";
   if (value < 30) return "Overweight";
+
   return "Obesity";
 }
 
-function calculateNavyBodyFat({ heightCm, gender, waist, neck, hip }) {
+function calculateNavyBodyFat({
+  heightCm,
+  gender,
+  waist,
+  neck,
+  hip,
+}) {
   const height = Number(heightCm);
   const waistValue = Number(waist);
   const neckValue = Number(neck);
   const hipValue = Number(hip);
 
-  if (!height || !waistValue || !neckValue || height <= 0) return null;
+  if (!height || !waistValue || !neckValue || height <= 0) {
+    return null;
+  }
+
   if (waistValue <= neckValue) return null;
 
-  // U.S. Navy circumference method uses inches.
   const heightIn = height / 2.54;
   const waistIn = waistValue / 2.54;
   const neckIn = neckValue / 2.54;
@@ -130,7 +141,9 @@ function calculateNavyBodyFat({ heightCm, gender, waist, neck, hip }) {
 
   if (gender === "female") {
     if (!hipValue || hipValue <= 0) return null;
+
     const hipIn = hipValue / 2.54;
+
     if (waistIn + hipIn <= neckIn) return null;
 
     bodyFat =
@@ -148,12 +161,16 @@ function calculateNavyBodyFat({ heightCm, gender, waist, neck, hip }) {
       450;
   }
 
-  if (!Number.isFinite(bodyFat) || bodyFat < 0 || bodyFat > 70) return null;
+  if (!Number.isFinite(bodyFat) || bodyFat < 0 || bodyFat > 70) {
+    return null;
+  }
+
   return Number(bodyFat.toFixed(1));
 }
 
 function getBodyFatCategory(bodyFat, gender) {
   const value = Number(bodyFat);
+
   if (!Number.isFinite(value)) return null;
 
   if (gender === "female") {
@@ -161,6 +178,7 @@ function getBodyFatCategory(bodyFat, gender) {
     if (value < 21) return "Athletic range";
     if (value < 25) return "Fitness range";
     if (value < 32) return "Average range";
+
     return "Higher range";
   }
 
@@ -168,15 +186,30 @@ function getBodyFatCategory(bodyFat, gender) {
   if (value < 14) return "Athletic range";
   if (value < 18) return "Fitness range";
   if (value < 25) return "Average range";
+
   return "Higher range";
 }
 
-function BmiWeightChart({ heightCm, weightKg, bmi }) {
+function BmiWeightChart({
+  heightCm,
+  weightKg,
+  bmi,
+}) {
   const height = Number(heightCm);
   const weight = Number(weightKg);
   const currentBmi = Number(bmi);
 
-  const rows = [150, 155, 160, 165, 170, 175, 180, 185, 190].map((cm) => ({
+  const rows = [
+    150,
+    155,
+    160,
+    165,
+    170,
+    175,
+    180,
+    185,
+    190,
+  ].map((cm) => ({
     height: cm,
     min: Number((18.5 * (cm / 100) ** 2).toFixed(1)),
     max: Number((24.9 * (cm / 100) ** 2).toFixed(1)),
@@ -185,7 +218,8 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
   const nearestHeight =
     Number.isFinite(height) && height > 0
       ? rows.reduce((closest, row) =>
-          Math.abs(row.height - height) < Math.abs(closest.height - height)
+          Math.abs(row.height - height) <
+          Math.abs(closest.height - height)
             ? row
             : closest
         )
@@ -194,19 +228,26 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
   const currentRange =
     height > 0
       ? {
-          min: Number((18.5 * (height / 100) ** 2).toFixed(1)),
-          max: Number((24.9 * (height / 100) ** 2).toFixed(1)),
+          min: Number(
+            (18.5 * (height / 100) ** 2).toFixed(1)
+          ),
+          max: Number(
+            (24.9 * (height / 100) ** 2).toFixed(1)
+          ),
         }
       : null;
 
   const scaleMin = 15;
   const scaleMax = 35;
+
   const marker = Number.isFinite(currentBmi)
     ? Math.max(
         0,
         Math.min(
           100,
-          ((currentBmi - scaleMin) / (scaleMax - scaleMin)) * 100
+          ((currentBmi - scaleMin) /
+            (scaleMax - scaleMin)) *
+            100
         )
       )
     : null;
@@ -218,10 +259,12 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
           <p className="text-[9px] font-bold uppercase tracking-[.14em] text-primary">
             BMI reference chart
           </p>
-          <h3 className="mt-1 text-base font-semibold text-slate-900">
+
+          <h3 className="mt-1 text-base font-semibold text-black">
             Height → healthy weight range
           </h3>
-          <p className="mt-1 text-[10px] leading-5 text-slate-500">
+
+          <p className="mt-1 text-[10px] leading-5 text-black">
             Healthy-weight range is based on BMI 18.5–24.9.
           </p>
         </div>
@@ -231,10 +274,12 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
             <p className="text-[8px] font-bold uppercase tracking-[.12em] text-primary">
               Your height
             </p>
-            <p className="mt-0.5 font-mono text-sm font-bold text-slate-900">
+
+            <p className="mt-0.5 font-mono text-sm font-bold text-black">
               {height} cm
             </p>
-            <p className="text-[9px] text-slate-500">
+
+            <p className="text-[9px] text-black">
               Healthy: {currentRange.min}–{currentRange.max} kg
             </p>
           </div>
@@ -242,31 +287,43 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
       </div>
 
       <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70">
-        <div className="grid grid-cols-[.8fr_1fr_1fr] bg-slate-50 px-3 py-2 text-[8px] font-bold uppercase tracking-[.12em] text-slate-400">
+        <div className="grid grid-cols-[.8fr_1fr_1fr] bg-slate-50 px-3 py-2 text-[8px] font-bold uppercase tracking-[.12em] text-black">
           <span>Height</span>
           <span>Healthy weight</span>
           <span>Current</span>
         </div>
 
         {rows.map((row) => {
-          const isCurrent = nearestHeight?.height === row.height;
+          const isCurrent =
+            nearestHeight?.height === row.height;
+
           return (
             <div
               key={row.height}
               className={`grid grid-cols-[.8fr_1fr_1fr] items-center px-3 py-2.5 text-[10px] ${
-                isCurrent ? "bg-primary/8 font-semibold" : "bg-white/45"
+                isCurrent
+                  ? "bg-primary/8 font-semibold"
+                  : "bg-white/45"
               }`}
             >
-              <span className="font-mono text-slate-700">{row.height} cm</span>
-              <span className="text-slate-600">
+              <span className="font-mono text-black">
+                {row.height} cm
+              </span>
+
+              <span className="text-black">
                 {row.min}–{row.max} kg
               </span>
+
               <span
                 className={
-                  isCurrent ? "font-mono text-primary" : "text-slate-300"
+                  isCurrent
+                    ? "font-mono text-primary"
+                    : "text-black"
                 }
               >
-                {isCurrent && Number.isFinite(weight) ? `${weight} kg` : "—"}
+                {isCurrent && Number.isFinite(weight)
+                  ? `${weight} kg`
+                  : "—"}
               </span>
             </div>
           );
@@ -276,10 +333,14 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
       {Number.isFinite(currentBmi) && (
         <div className="mt-5">
           <div className="flex items-center justify-between">
-            <p className="text-[9px] font-bold uppercase tracking-[.12em] text-slate-400">
-              Your BMI: <span className="text-slate-800">{currentBmi}</span>
+            <p className="text-[9px] font-bold uppercase tracking-[.12em] text-black">
+              Your BMI:{" "}
+              <span className="text-black">
+                {currentBmi}
+              </span>
             </p>
-            <p className="text-[9px] font-semibold text-slate-500">
+
+            <p className="text-[9px] font-semibold text-black">
               {getLocalBmiCategory(currentBmi)}
             </p>
           </div>
@@ -291,16 +352,17 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
               <div className="bg-amber-300" />
               <div className="bg-rose-400" />
             </div>
+
             {marker !== null && (
               <div
-                className="absolute top-1/2 h-6 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-950 shadow"
+                className="absolute top-1/2 h-6 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black shadow"
                 style={{ left: `${marker}%` }}
                 title={`BMI ${currentBmi}`}
               />
             )}
           </div>
 
-          <div className="mt-2 grid grid-cols-4 gap-1 text-[8px] text-slate-400">
+          <div className="mt-2 grid grid-cols-4 gap-1 text-[8px] text-black">
             <span>Underweight</span>
             <span>Healthy</span>
             <span>Overweight</span>
@@ -312,7 +374,10 @@ function BmiWeightChart({ heightCm, weightKg, bmi }) {
   );
 }
 
-function GlassPanel({ children, className = "" }) {
+function GlassPanel({
+  children,
+  className = "",
+}) {
   return (
     <section
       className={`vitals-panel rounded-[2rem] border border-white/80 bg-white/70 shadow-[0_24px_75px_rgba(15,23,42,.07)] backdrop-blur-2xl ${className}`}
@@ -342,12 +407,14 @@ function NumberField({
         {Icon && (
           <Icon
             size={15}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black"
           />
         )}
 
         <input
-          className={`input vitals-input h-12 ${Icon ? "pl-10" : ""}`}
+          className={`input vitals-input h-12 ${
+            Icon ? "pl-10" : ""
+          }`}
           type="number"
           step={step}
           min={min}
@@ -360,7 +427,7 @@ function NumberField({
       </div>
 
       {hint && (
-        <span className="mt-1.5 block text-[9px] leading-4 text-slate-400">
+        <span className="mt-1.5 block text-[9px] leading-4 text-black">
           {hint}
         </span>
       )}
@@ -368,16 +435,28 @@ function NumberField({
   );
 }
 
-function ResultCard({ label, value, sub, icon: Icon, tone = "green" }) {
+function ResultCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  tone = "green",
+}) {
   return (
-    <article className={`result-card result-${tone} group`}>
+    <article
+      className={`result-card result-${tone} group`}
+    >
       <span className="result-corner result-corner-top" />
       <span className="result-corner result-corner-bottom" />
 
       <div className="relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/55 text-current shadow-sm backdrop-blur-md transition duration-300 group-hover:scale-105 group-hover:rotate-[-4deg]">
-            {Icon ? <Icon size={17} /> : <Activity size={17} />}
+            {Icon ? (
+              <Icon size={17} />
+            ) : (
+              <Activity size={17} />
+            )}
           </div>
 
           <span className="rounded-full bg-white/30 px-2.5 py-1 text-[8px] font-bold uppercase tracking-[.12em]">
@@ -401,21 +480,32 @@ function ResultCard({ label, value, sub, icon: Icon, tone = "green" }) {
   );
 }
 
-function InsightCard({ icon: Icon, title, text }) {
+function InsightCard({
+  icon: Icon,
+  title,
+  text,
+}) {
   return (
     <div className="group rounded-2xl border border-slate-200/75 bg-white/60 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md">
       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:scale-105">
         <Icon size={16} />
       </div>
 
-      <p className="mt-3 text-xs font-semibold text-slate-800">{title}</p>
+      <p className="mt-3 text-xs font-semibold text-black">
+        {title}
+      </p>
 
-      <p className="mt-1 text-[10px] leading-5 text-slate-400">{text}</p>
+      <p className="mt-1 text-[10px] leading-5 text-black">
+        {text}
+      </p>
     </div>
   );
 }
 
-function HistoryRow({ metric, onRemove }) {
+function HistoryRow({
+  metric,
+  onRemove,
+}) {
   return (
     <div className="history-row group">
       <div className="history-date">
@@ -423,17 +513,20 @@ function HistoryRow({ metric, onRemove }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold text-slate-800">
-          {new Date(metric.recordedAt).toLocaleDateString(undefined, {
+        <p className="text-xs font-semibold text-black">
+          {new Date(
+            metric.recordedAt
+          ).toLocaleDateString(undefined, {
             day: "numeric",
             month: "short",
             year: "numeric",
           })}
         </p>
 
-        <p className="mt-1 truncate text-[10px] text-slate-400">
-          {metric.weightKg}kg · BMI {metric.bmi} ({metric.bmiCategory}) · BMR{" "}
-          {metric.bmr} · TDEE {metric.tdee}
+        <p className="mt-1 truncate text-[10px] text-black">
+          {metric.weightKg}kg · BMI {metric.bmi} (
+          {metric.bmiCategory}) · BMR {metric.bmr} · TDEE{" "}
+          {metric.tdee}
           {metric.bodyFatPercent
             ? ` · Body fat ${metric.bodyFatPercent}%`
             : ""}
@@ -443,7 +536,7 @@ function HistoryRow({ metric, onRemove }) {
       <button
         type="button"
         onClick={() => onRemove(metric._id)}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-300 transition hover:bg-red-50 hover:text-red-600"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-black transition hover:bg-red-50 hover:text-red-600"
         aria-label="Delete body metric entry"
       >
         <Trash2 size={14} />
@@ -452,17 +545,29 @@ function HistoryRow({ metric, onRemove }) {
   );
 }
 
-function MetricProgress({ label, value, target, suffix = "" }) {
+function MetricProgress({
+  label,
+  value,
+  target,
+  suffix = "",
+}) {
   const safeTarget = Number(target) || 1;
-  const pct = Math.min(100, Math.round((Number(value) / safeTarget) * 100));
+
+  const pct = Math.min(
+    100,
+    Math.round(
+      (Number(value) / safeTarget) * 100
+    )
+  );
 
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[10px] font-semibold text-slate-500">
+        <span className="text-[10px] font-semibold text-black">
           {label}
         </span>
-        <span className="font-mono text-[10px] font-bold text-slate-700">
+
+        <span className="font-mono text-[10px] font-bold text-black">
           {value}
           {suffix}
         </span>
@@ -475,7 +580,7 @@ function MetricProgress({ label, value, target, suffix = "" }) {
         />
       </div>
 
-      <p className="mt-1 text-[8px] text-slate-400">
+      <p className="mt-1 text-[8px] text-black">
         Compared with {target}
         {suffix}
       </p>
@@ -486,10 +591,13 @@ function MetricProgress({ label, value, target, suffix = "" }) {
 export default function VitalsTracker() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [result, setResult] = useState(null);
-  const [calculating, setCalculating] = useState(false);
+  const [calculating, setCalculating] =
+    useState(false);
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState([]);
-  const [bookingFor, setBookingFor] = useState({ type: "self" });
+  const [bookingFor, setBookingFor] = useState({
+    type: "self",
+  });
   const [error, setError] = useState("");
 
   function loadHistory() {
@@ -500,7 +608,9 @@ export default function VitalsTracker() {
             bookingFor.dependentId || undefined,
         },
       })
-      .then(({ data }) => setHistory(data.metrics || []))
+      .then(({ data }) =>
+        setHistory(data.metrics || [])
+      )
       .catch(() => {});
   }
 
@@ -520,52 +630,85 @@ export default function VitalsTracker() {
         age: Number(form.age),
         gender: form.gender,
         activityLevel: form.activityLevel,
-        waist: form.waist ? Number(form.waist) : undefined,
-        neck: form.neck ? Number(form.neck) : undefined,
-        hip: form.hip ? Number(form.hip) : undefined,
+        waist: form.waist
+          ? Number(form.waist)
+          : undefined,
+        neck: form.neck
+          ? Number(form.neck)
+          : undefined,
+        hip: form.hip
+          ? Number(form.hip)
+          : undefined,
       };
 
-      const { data } = await api.post("/wellness/calculate", payload);
+      const { data } = await api.post(
+        "/wellness/calculate",
+        payload
+      );
 
-      const localBmi = calculateLocalBmi(form.heightCm, form.weightKg);
-      const localBodyFat = calculateNavyBodyFat(form);
+      const localBmi = calculateLocalBmi(
+        form.heightCm,
+        form.weightKg
+      );
+
+      const localBodyFat =
+        calculateNavyBodyFat(form);
 
       setResult({
         ...data,
+
         bmi:
-          data?.bmi !== undefined && data?.bmi !== null
+          data?.bmi !== undefined &&
+          data?.bmi !== null
             ? data.bmi
             : localBmi,
+
         bmiCategory:
           data?.bmiCategory ||
           getLocalBmiCategory(
-            data?.bmi !== undefined && data?.bmi !== null
+            data?.bmi !== undefined &&
+              data?.bmi !== null
               ? data.bmi
               : localBmi
           ),
+
         bodyFatPercent:
           data?.bodyFatPercent !== undefined &&
           data?.bodyFatPercent !== null
             ? data.bodyFatPercent
             : localBodyFat,
+
         bodyFatCategory:
           data?.bodyFatCategory ||
-          getBodyFatCategory(localBodyFat, form.gender),
+          getBodyFatCategory(
+            localBodyFat,
+            form.gender
+          ),
       });
     } catch (err) {
-      // Keep BMI/body-fat usable even if the wellness calculation API is unavailable.
-      const localBmi = calculateLocalBmi(form.heightCm, form.weightKg);
-      const localBodyFat = calculateNavyBodyFat(form);
+      const localBmi = calculateLocalBmi(
+        form.heightCm,
+        form.weightKg
+      );
+
+      const localBodyFat =
+        calculateNavyBodyFat(form);
 
       if (localBmi !== null) {
         setResult({
           bmi: localBmi,
-          bmiCategory: getLocalBmiCategory(localBmi),
+          bmiCategory:
+            getLocalBmiCategory(localBmi),
           bmr: "—",
           tdee: "—",
           bodyFatPercent: localBodyFat,
-          bodyFatCategory: getBodyFatCategory(localBodyFat, form.gender),
+          bodyFatCategory:
+            getBodyFatCategory(
+              localBodyFat,
+              form.gender
+            ),
         });
+
         setError(
           "BMI/body-fat were calculated locally. BMR/TDEE need the wellness server."
         );
@@ -585,27 +728,54 @@ export default function VitalsTracker() {
     setError("");
 
     try {
-      await api.post("/wellness/body-metrics", {
-        heightCm: Number(form.heightCm),
-        weightKg: Number(form.weightKg),
-        age: Number(form.age),
-        gender: form.gender,
-        activityLevel: form.activityLevel,
-        measurements: {
-          waist: form.waist ? Number(form.waist) : undefined,
-          hip: form.hip ? Number(form.hip) : undefined,
-          chest: form.chest ? Number(form.chest) : undefined,
-          neck: form.neck ? Number(form.neck) : undefined,
-          arm: form.arm ? Number(form.arm) : undefined,
-          thigh: form.thigh ? Number(form.thigh) : undefined,
-        },
-        muscleMassKg: form.muscleMassKg
-          ? Number(form.muscleMassKg)
-          : undefined,
-        notes: form.notes,
-        forDependentId: bookingFor.dependentId,
-        forDependentName: bookingFor.dependentName,
-      });
+      await api.post(
+        "/wellness/body-metrics",
+        {
+          heightCm: Number(form.heightCm),
+          weightKg: Number(form.weightKg),
+          age: Number(form.age),
+          gender: form.gender,
+          activityLevel: form.activityLevel,
+
+          measurements: {
+            waist: form.waist
+              ? Number(form.waist)
+              : undefined,
+
+            hip: form.hip
+              ? Number(form.hip)
+              : undefined,
+
+            chest: form.chest
+              ? Number(form.chest)
+              : undefined,
+
+            neck: form.neck
+              ? Number(form.neck)
+              : undefined,
+
+            arm: form.arm
+              ? Number(form.arm)
+              : undefined,
+
+            thigh: form.thigh
+              ? Number(form.thigh)
+              : undefined,
+          },
+
+          muscleMassKg: form.muscleMassKg
+            ? Number(form.muscleMassKg)
+            : undefined,
+
+          notes: form.notes,
+
+          forDependentId:
+            bookingFor.dependentId,
+
+          forDependentName:
+            bookingFor.dependentName,
+        }
+      );
 
       loadHistory();
     } catch (err) {
@@ -620,7 +790,10 @@ export default function VitalsTracker() {
 
   async function removeEntry(id) {
     try {
-      await api.delete(`/wellness/body-metrics/${id}`);
+      await api.delete(
+        `/wellness/body-metrics/${id}`
+      );
+
       loadHistory();
     } catch (err) {
       setError(
@@ -635,6 +808,7 @@ export default function VitalsTracker() {
       ...current,
       [key]: value,
     }));
+
     setError("");
   }
 
@@ -644,13 +818,12 @@ export default function VitalsTracker() {
         .slice()
         .reverse()
         .map((metric) => ({
-          date: new Date(metric.recordedAt).toLocaleDateString(
-            undefined,
-            {
-              month: "short",
-              day: "numeric",
-            }
-          ),
+          date: new Date(
+            metric.recordedAt
+          ).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          }),
           weight: metric.weightKg,
           bmi: metric.bmi,
         })),
@@ -661,19 +834,94 @@ export default function VitalsTracker() {
 
   const weightDelta =
     latest && history[1]
-      ? Number((latest.weightKg - history[1].weightKg).toFixed(1))
+      ? Number(
+          (
+            latest.weightKg -
+            history[1].weightKg
+          ).toFixed(1)
+        )
       : null;
 
   return (
-    <div className="vitals-page relative min-h-screen overflow-hidden bg-[#f4f9f6]">
+    <div className="vitals-page relative min-h-screen overflow-hidden bg-[#f4f9f6] text-black">
       <Navbar />
 
       <style>{`
         .vitals-page {
+          color: #000000 !important;
+
           background:
-            radial-gradient(circle at 7% 7%, rgba(15,110,91,.08), transparent 31rem),
-            radial-gradient(circle at 93% 23%, rgba(16,185,129,.05), transparent 28rem),
+            radial-gradient(
+              circle at 7% 7%,
+              rgba(15,110,91,.08),
+              transparent 31rem
+            ),
+            radial-gradient(
+              circle at 93% 23%,
+              rgba(16,185,129,.05),
+              transparent 28rem
+            ),
             #f4f9f6;
+        }
+
+        /*
+         * FORCE NORMAL PAGE TEXT TO BLACK
+         */
+        .vitals-page .text-slate-950,
+        .vitals-page .text-slate-900,
+        .vitals-page .text-slate-800,
+        .vitals-page .text-slate-700,
+        .vitals-page .text-slate-600,
+        .vitals-page .text-slate-500,
+        .vitals-page .text-slate-400,
+        .vitals-page .text-slate-300 {
+          color: #000000 !important;
+        }
+
+        .vitals-page .label,
+        .vitals-page .eyebrow {
+          color: #000000 !important;
+        }
+
+        .vitals-page input,
+        .vitals-page select,
+        .vitals-page textarea {
+          color: #000000 !important;
+        }
+
+        .vitals-page input::placeholder,
+        .vitals-page textarea::placeholder {
+          color: #555555 !important;
+          opacity: 1;
+        }
+
+        .vitals-page option {
+          color: #000000 !important;
+          background: #ffffff !important;
+        }
+
+        .vitals-page .vitals-input {
+          color: #000000 !important;
+          background: rgba(255,255,255,.96);
+        }
+
+        .vitals-page .vitals-input:focus {
+          color: #000000 !important;
+        }
+
+        /*
+         * PROMO + RESULT CARDS KEEP WHITE TEXT
+         */
+        .vitals-page .vitals-promo,
+        .vitals-page .result-card {
+          color: #ffffff;
+        }
+
+        .vitals-page .vitals-promo .text-white,
+        .vitals-page .vitals-promo .text-white\\/50,
+        .vitals-page .vitals-promo .text-white\\/45,
+        .vitals-page .result-card .text-white {
+          color: #ffffff !important;
         }
 
         .vitals-page::before {
@@ -683,10 +931,21 @@ export default function VitalsTracker() {
           pointer-events: none;
           opacity: .34;
           background-image:
-            linear-gradient(rgba(15,110,91,.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(15,110,91,.035) 1px, transparent 1px);
+            linear-gradient(
+              rgba(15,110,91,.035) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(15,110,91,.035) 1px,
+              transparent 1px
+            );
           background-size: 50px 50px;
-          mask-image: linear-gradient(to bottom, black, transparent 82%);
+          mask-image: linear-gradient(
+            to bottom,
+            black,
+            transparent 82%
+          );
         }
 
         .vitals-panel {
@@ -783,28 +1042,48 @@ export default function VitalsTracker() {
         }
 
         .result-green {
-          background: linear-gradient(135deg, #0f6e5b, #24b18f);
-          color: white;
+          background: linear-gradient(
+            135deg,
+            #0f6e5b,
+            #24b18f
+          );
+          color: white !important;
         }
 
         .result-blue {
-          background: linear-gradient(135deg, #256aa7, #69aee0);
-          color: white;
+          background: linear-gradient(
+            135deg,
+            #256aa7,
+            #69aee0
+          );
+          color: white !important;
         }
 
         .result-violet {
-          background: linear-gradient(135deg, #7254c5, #aa84e1);
-          color: white;
+          background: linear-gradient(
+            135deg,
+            #7254c5,
+            #aa84e1
+          );
+          color: white !important;
         }
 
         .result-coral {
-          background: linear-gradient(135deg, #e5684d, #efa66b);
-          color: white;
+          background: linear-gradient(
+            135deg,
+            #e5684d,
+            #efa66b
+          );
+          color: white !important;
         }
 
         .result-card:hover {
-          transform: translateY(-5px) rotateX(2deg) rotateY(-2deg);
-          box-shadow: 0 28px 70px rgba(15,23,42,.11);
+          transform:
+            translateY(-5px)
+            rotateX(2deg)
+            rotateY(-2deg);
+          box-shadow:
+            0 28px 70px rgba(15,23,42,.11);
         }
 
         .result-corner {
@@ -867,6 +1146,7 @@ export default function VitalsTracker() {
         .vitals-promo {
           position: relative;
           overflow: hidden;
+          color: #ffffff !important;
         }
 
         .vitals-promo::after {
@@ -917,8 +1197,13 @@ export default function VitalsTracker() {
         }
 
         @keyframes vitals-shine {
-          0%, 45% { left: -30%; }
-          75%, 100% { left: 130%; }
+          0%, 45% {
+            left: -30%;
+          }
+
+          75%, 100% {
+            left: 130%;
+          }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -940,16 +1225,17 @@ export default function VitalsTracker() {
       `}</style>
 
       <div className="pointer-events-none absolute -left-56 top-20 h-[34rem] w-[34rem] rounded-full bg-primary/[0.08] blur-3xl" />
+
       <div className="pointer-events-none absolute -right-48 bottom-0 h-[34rem] w-[34rem] rounded-full bg-accent/[0.05] blur-3xl" />
 
       <main className="relative mx-auto max-w-7xl px-5 py-7 sm:px-6 lg:px-8 lg:py-10">
-        {/* Header */}
+        {/* HEADER */}
         <section className="mb-6 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="glass-pill inline-flex items-center gap-1.5">
-                <Ruler size={13} className="text-primary" />
-                Wellness metrics
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">
+                <ShieldCheck size={11} />
+                Welness Metrics
               </span>
 
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">
@@ -958,29 +1244,34 @@ export default function VitalsTracker() {
               </span>
             </div>
 
-            <p className="eyebrow mt-6">Vitals tracker</p>
+            <p className="eyebrow mt-6">
+              Vitals tracker
+            </p>
 
-            <h1 className="mt-2 max-w-4xl font-display text-4xl font-semibold leading-[1.04] tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="mt-2 max-w-4xl font-display text-4xl font-semibold leading-[1.04] tracking-tight text-black sm:text-5xl">
               Understand your metrics.
               <span className="block text-primary">
                 Track the trend over time.
               </span>
             </h1>
 
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-              Calculate BMI, BMR, TDEE, and available body-composition
-              estimates, then save entries to build a simple personal trend
-              history.
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-black sm:text-base">
+              Calculate BMI, BMR, TDEE, and available
+              body-composition estimates, then save entries
+              to build a simple personal trend history.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-white/80 bg-white/65 px-3 py-2 text-[10px] font-semibold text-slate-500 shadow-sm backdrop-blur-xl">
-            <LockKeyhole size={12} className="text-primary" />
+          <div className="flex items-center gap-2 rounded-full border border-white/80 bg-white/65 px-3 py-2 text-[10px] font-semibold text-black shadow-sm backdrop-blur-xl">
+            <LockKeyhole
+              size={12}
+              className="text-primary"
+            />
             Your wellness workspace
           </div>
         </section>
 
-        {/* Promo */}
+        {/* PROMO */}
         <section className="vitals-promo group relative overflow-hidden rounded-[2rem] bg-slate-950 shadow-[0_28px_80px_rgba(15,23,42,.14)]">
           <div className="absolute inset-0">
             <img
@@ -988,6 +1279,7 @@ export default function VitalsTracker() {
               alt="Healthcare consultation"
               className="h-full w-full object-cover opacity-35 transition duration-700 group-hover:scale-105"
             />
+
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-slate-950/15" />
           </div>
 
@@ -1005,25 +1297,39 @@ export default function VitalsTracker() {
 
               <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Make your health data
-                <span className="text-emerald-300"> useful.</span>
+                <span className="text-emerald-300">
+                  {" "}useful.
+                </span>
               </h2>
 
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/50">
-                Save consistent measurements and use the trend view to see how
-                your metrics change from entry to entry.
+                Save consistent measurements and use the
+                trend view to see how your metrics change
+                from entry to entry.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2 text-[10px] text-white/45">
                 <span className="flex items-center gap-1.5">
-                  <BadgeCheck size={12} className="text-emerald-300" />
+                  <BadgeCheck
+                    size={12}
+                    className="text-emerald-300"
+                  />
                   Personal history
                 </span>
+
                 <span className="flex items-center gap-1.5">
-                  <TrendingUp size={12} className="text-emerald-300" />
+                  <TrendingUp
+                    size={12}
+                    className="text-emerald-300"
+                  />
                   Trend view
                 </span>
+
                 <span className="flex items-center gap-1.5">
-                  <HeartPulse size={12} className="text-emerald-300" />
+                  <HeartPulse
+                    size={12}
+                    className="text-emerald-300"
+                  />
                   Connected wellness
                 </span>
               </div>
@@ -1038,14 +1344,17 @@ export default function VitalsTracker() {
                 className="h-full w-full object-cover"
               />
             </div>
+
             <div className="flex items-center gap-2 p-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
                 <Sparkles size={15} />
               </div>
+
               <div>
                 <p className="text-[10px] font-semibold text-white">
                   Personal wellness
                 </p>
+
                 <p className="mt-0.5 text-[9px] text-white/40">
                   Simple metrics, less guesswork
                 </p>
@@ -1062,26 +1371,35 @@ export default function VitalsTracker() {
         </div>
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-          {/* Input workspace */}
+          {/* INPUT WORKSPACE */}
           <GlassPanel className="p-6 sm:p-7">
             <div>
-              <p className="eyebrow">01 · Measurements</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+              <p className="eyebrow">
+                01 · Measurements
+              </p>
+
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                 Enter your current stats
               </h2>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                Required values drive the core calculations. Optional
-                measurements can support additional estimates returned by the
-                backend.
+
+              <p className="mt-1 text-xs leading-5 text-black">
+                Required values drive the core calculations.
+                Optional measurements can support additional
+                estimates returned by the backend.
               </p>
             </div>
 
-            <form onSubmit={calculate} className="mt-6">
+            <form
+              onSubmit={calculate}
+              className="mt-6"
+            >
               <div className="grid gap-4 sm:grid-cols-3">
                 <NumberField
                   label="Height (cm)"
                   value={form.heightCm}
-                  onChange={(value) => setField("heightCm", value)}
+                  onChange={(value) =>
+                    setField("heightCm", value)
+                  }
                   icon={Ruler}
                   required
                   min="30"
@@ -1092,7 +1410,9 @@ export default function VitalsTracker() {
                 <NumberField
                   label="Weight (kg)"
                   value={form.weightKg}
-                  onChange={(value) => setField("weightKg", value)}
+                  onChange={(value) =>
+                    setField("weightKg", value)
+                  }
                   icon={Weight}
                   required
                   min="1"
@@ -1104,7 +1424,9 @@ export default function VitalsTracker() {
                 <NumberField
                   label="Age"
                   value={form.age}
-                  onChange={(value) => setField("age", value)}
+                  onChange={(value) =>
+                    setField("age", value)
+                  }
                   icon={CalendarDays}
                   required
                   min="1"
@@ -1116,35 +1438,50 @@ export default function VitalsTracker() {
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="label">Gender</span>
+                  <span className="label">
+                    Gender
+                  </span>
 
                   <div className="relative">
                     <UserRound
                       size={15}
-                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black"
                     />
 
                     <select
                       className="input vitals-input h-12 pl-10"
                       value={form.gender}
                       onChange={(e) =>
-                        setField("gender", e.target.value)
+                        setField(
+                          "gender",
+                          e.target.value
+                        )
                       }
                     >
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
+                      <option value="male">
+                        Male
+                      </option>
+
+                      <option value="female">
+                        Female
+                      </option>
+
+                      <option value="other">
+                        Other
+                      </option>
                     </select>
                   </div>
                 </label>
 
                 <label className="block">
-                  <span className="label">Activity level</span>
+                  <span className="label">
+                    Activity level
+                  </span>
 
                   <div className="relative">
                     <Activity
                       size={15}
-                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black"
                     />
 
                     <select
@@ -1157,14 +1494,17 @@ export default function VitalsTracker() {
                         )
                       }
                     >
-                      {ACTIVITY_OPTIONS.map((option) => (
-                        <option
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label} · {option.detail}
-                        </option>
-                      ))}
+                      {ACTIVITY_OPTIONS.map(
+                        (option) => (
+                          <option
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label} ·{" "}
+                            {option.detail}
+                          </option>
+                        )
+                      )}
                     </select>
                   </div>
                 </label>
@@ -1176,34 +1516,44 @@ export default function VitalsTracker() {
                     <p className="text-[9px] font-bold uppercase tracking-[.14em] text-primary">
                       Optional body measurements
                     </p>
-                    <h3 className="mt-1 text-base font-semibold text-slate-900">
+
+                    <h3 className="mt-1 text-base font-semibold text-black">
                       Add more context
                     </h3>
                   </div>
 
-                  <span className="hidden text-[9px] text-slate-400 sm:block">
+                  <span className="hidden text-[9px] text-black sm:block">
                     cm unless specified
                   </span>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {MEASUREMENT_FIELDS.map((field) => (
-                    <NumberField
-                      key={field.key}
-                      label={field.label}
-                      value={form[field.key]}
-                      onChange={(value) =>
-                        setField(field.key, value)
-                      }
-                    />
-                  ))}
+                  {MEASUREMENT_FIELDS.map(
+                    (field) => (
+                      <NumberField
+                        key={field.key}
+                        label={field.label}
+                        value={form[field.key]}
+                        onChange={(value) =>
+                          setField(
+                            field.key,
+                            value
+                          )
+                        }
+                      />
+                    )
+                  )}
                 </div>
 
                 <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/70 px-3 py-2 text-[9px] leading-4 text-amber-800">
-                  <strong>Body fat estimate:</strong> male needs waist + neck;
-                  female needs waist + hip + neck. Measurements are entered in
-                  centimeters. If these are filled, the U.S. Navy estimate is
-                  shown automatically.
+                  <strong>
+                    Body fat estimate:
+                  </strong>{" "}
+                  male needs waist + neck; female needs
+                  waist + hip + neck. Measurements are
+                  entered in centimeters. If these are
+                  filled, the U.S. Navy estimate is shown
+                  automatically.
                 </div>
               </div>
 
@@ -1212,7 +1562,10 @@ export default function VitalsTracker() {
                   label="Muscle mass (kg)"
                   value={form.muscleMassKg}
                   onChange={(value) =>
-                    setField("muscleMassKg", value)
+                    setField(
+                      "muscleMassKg",
+                      value
+                    )
                   }
                   icon={Activity}
                   min="0"
@@ -1223,12 +1576,18 @@ export default function VitalsTracker() {
                 />
 
                 <label className="block">
-                  <span className="label">Notes</span>
+                  <span className="label">
+                    Notes
+                  </span>
+
                   <input
                     className="input vitals-input h-12"
                     value={form.notes}
                     onChange={(e) =>
-                      setField("notes", e.target.value)
+                      setField(
+                        "notes",
+                        e.target.value
+                      )
                     }
                     placeholder="Anything you want to remember..."
                   />
@@ -1241,6 +1600,7 @@ export default function VitalsTracker() {
                     size={15}
                     className="mt-0.5 shrink-0"
                   />
+
                   <span>{error}</span>
                 </div>
               )}
@@ -1253,12 +1613,15 @@ export default function VitalsTracker() {
                   {calculating ? (
                     <>
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+
                       Calculating...
                     </>
                   ) : (
                     <>
                       <Activity size={15} />
+
                       Calculate metrics
+
                       <ArrowRight
                         size={13}
                         className="transition-transform group-hover:translate-x-0.5"
@@ -1277,12 +1640,15 @@ export default function VitalsTracker() {
                     {saving ? (
                       <>
                         <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+
                         Saving...
                       </>
                     ) : (
                       <>
                         <Save size={14} />
+
                         Save entry
+
                         <Check
                           size={13}
                           className="transition-transform group-hover:scale-110"
@@ -1295,12 +1661,15 @@ export default function VitalsTracker() {
             </form>
           </GlassPanel>
 
-          {/* Side panel */}
+          {/* SIDE PANEL */}
           <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
             <GlassPanel className="p-5">
               <div>
-                <p className="eyebrow">How it works</p>
-                <h2 className="mt-1 text-lg font-semibold text-slate-900">
+                <p className="eyebrow">
+                  How it works
+                </p>
+
+                <h2 className="mt-1 text-lg font-semibold text-black">
                   Build a consistent record
                 </h2>
               </div>
@@ -1311,11 +1680,13 @@ export default function VitalsTracker() {
                   title="Enter baseline stats"
                   text="Add the required metrics first, then optionally add body measurements."
                 />
+
                 <InsightCard
                   icon={Activity}
                   title="Calculate"
                   text="Your existing wellness calculation endpoint returns the supported metrics."
                 />
+
                 <InsightCard
                   icon={TrendingUp}
                   title="Save and compare"
@@ -1330,6 +1701,7 @@ export default function VitalsTracker() {
                 alt="Healthy food and wellness"
                 className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-700 group-hover:scale-105"
               />
+
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
 
               <div className="relative z-10 flex min-h-[270px] flex-col justify-end p-6 text-white">
@@ -1342,8 +1714,9 @@ export default function VitalsTracker() {
                 </h3>
 
                 <p className="mt-2 text-xs leading-5 text-white/50">
-                  Pair your metrics with diet planning and calorie tracking for
-                  a broader wellness workflow.
+                  Pair your metrics with diet planning
+                  and calorie tracking for a broader
+                  wellness workflow.
                 </p>
               </div>
             </div>
@@ -1355,13 +1728,14 @@ export default function VitalsTracker() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-slate-800">
+                  <p className="text-xs font-semibold text-black">
                     Wellness note
                   </p>
 
-                  <p className="mt-1 text-[10px] leading-5 text-slate-400">
-                    These calculations are tracking tools and should not be
-                    treated as a medical diagnosis.
+                  <p className="mt-1 text-[10px] leading-5 text-black">
+                    These calculations are tracking tools
+                    and should not be treated as a medical
+                    diagnosis.
                   </p>
                 </div>
               </div>
@@ -1369,19 +1743,25 @@ export default function VitalsTracker() {
           </aside>
         </div>
 
-        {/* Results */}
+        {/* RESULTS */}
         {result && (
           <section className="mt-7">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
-                <p className="eyebrow">02 · Results</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                <p className="eyebrow">
+                  02 · Results
+                </p>
+
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                   Your latest calculation
                 </h2>
               </div>
 
-              <span className="hidden items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[.12em] text-slate-400 sm:flex">
-                <CheckCircle2 size={12} className="text-primary" />
+              <span className="hidden items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[.12em] text-black sm:flex">
+                <CheckCircle2
+                  size={12}
+                  className="text-primary"
+                />
                 Ready to save
               </span>
             </div>
@@ -1414,7 +1794,8 @@ export default function VitalsTracker() {
               <ResultCard
                 label="Body fat"
                 value={
-                  result.bodyFatPercent !== undefined &&
+                  result.bodyFatPercent !==
+                    undefined &&
                   result.bodyFatPercent !== null
                     ? `${result.bodyFatPercent}%`
                     : "—"
@@ -1436,7 +1817,7 @@ export default function VitalsTracker() {
           </section>
         )}
 
-        {/* Trend */}
+        {/* TREND */}
         <section className="mt-8">
           <GlassPanel className="p-6 sm:p-7">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -1445,23 +1826,31 @@ export default function VitalsTracker() {
                   <TrendingUp size={13} />
                   Progress
                 </p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                   Weight trend
                 </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Your saved weight entries, ordered from oldest to newest.
+
+                <p className="mt-1 text-xs leading-5 text-black">
+                  Your saved weight entries, ordered from
+                  oldest to newest.
                 </p>
               </div>
 
-              <div className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-[9px] font-semibold text-slate-500">
+              <div className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-[9px] font-semibold text-black">
                 {history.length}{" "}
-                {history.length === 1 ? "entry" : "entries"}
+                {history.length === 1
+                  ? "entry"
+                  : "entries"}
               </div>
             </div>
 
             {chartData.length > 1 ? (
               <div className="mt-6 h-[260px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
                   <LineChart
                     data={chartData}
                     margin={{
@@ -1473,25 +1862,47 @@ export default function VitalsTracker() {
                   >
                     <XAxis
                       dataKey="date"
-                      tick={{ fontSize: 10 }}
+                      tick={{
+                        fontSize: 10,
+                        fill: "#000000",
+                      }}
                       tickLine={false}
                       axisLine={false}
                     />
+
                     <YAxis
-                      tick={{ fontSize: 10 }}
-                      domain={["auto", "auto"]}
+                      tick={{
+                        fontSize: 10,
+                        fill: "#000000",
+                      }}
+                      domain={[
+                        "auto",
+                        "auto",
+                      ]}
                       tickLine={false}
                       axisLine={false}
                     />
+
                     <Tooltip
                       contentStyle={{
                         borderRadius: 14,
-                        border: "1px solid rgba(148,163,184,.18)",
-                        background: "rgba(255,255,255,.92)",
+                        border:
+                          "1px solid rgba(148,163,184,.18)",
+                        background:
+                          "rgba(255,255,255,.92)",
+                        color: "#000000",
                         fontSize: 11,
-                        boxShadow: "0 16px 40px rgba(15,23,42,.08)",
+                        boxShadow:
+                          "0 16px 40px rgba(15,23,42,.08)",
+                      }}
+                      labelStyle={{
+                        color: "#000000",
+                      }}
+                      itemStyle={{
+                        color: "#000000",
                       }}
                     />
+
                     <Line
                       type="monotone"
                       dataKey="weight"
@@ -1516,13 +1927,14 @@ export default function VitalsTracker() {
                     <TrendingUp size={23} />
                   </div>
 
-                  <p className="mt-4 text-sm font-semibold text-slate-800">
-                    Save two entries to unlock the trend line.
+                  <p className="mt-4 text-sm font-semibold text-black">
+                    Save two entries to unlock the trend
+                    line.
                   </p>
 
-                  <p className="mt-1 max-w-sm text-xs leading-5 text-slate-400">
-                    Consistent measurements make it easier to view changes
-                    over time.
+                  <p className="mt-1 max-w-sm text-xs leading-5 text-black">
+                    Consistent measurements make it easier
+                    to view changes over time.
                   </p>
                 </div>
               </div>
@@ -1531,39 +1943,49 @@ export default function VitalsTracker() {
             {latest && (
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-slate-200/70 bg-white/55 p-4">
-                  <p className="text-[9px] font-bold uppercase tracking-[.12em] text-slate-400">
+                  <p className="text-[9px] font-bold uppercase tracking-[.12em] text-black">
                     Latest weight
                   </p>
-                  <p className="mt-2 font-mono text-2xl font-bold text-slate-900">
+
+                  <p className="mt-2 font-mono text-2xl font-bold text-black">
                     {latest.weightKg}kg
                   </p>
-                  <p className="mt-1 text-[9px] text-slate-400">
+
+                  <p className="mt-1 text-[9px] text-black">
                     Latest saved entry
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200/70 bg-white/55 p-4">
-                  <p className="text-[9px] font-bold uppercase tracking-[.12em] text-slate-400">
+                  <p className="text-[9px] font-bold uppercase tracking-[.12em] text-black">
                     Latest BMI
                   </p>
-                  <p className="mt-2 font-mono text-2xl font-bold text-slate-900">
+
+                  <p className="mt-2 font-mono text-2xl font-bold text-black">
                     {latest.bmi}
                   </p>
-                  <p className="mt-1 text-[9px] text-slate-400">
+
+                  <p className="mt-1 text-[9px] text-black">
                     {latest.bmiCategory}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200/70 bg-white/55 p-4">
-                  <p className="text-[9px] font-bold uppercase tracking-[.12em] text-slate-400">
+                  <p className="text-[9px] font-bold uppercase tracking-[.12em] text-black">
                     Since previous
                   </p>
-                  <p className="mt-2 font-mono text-2xl font-bold text-slate-900">
+
+                  <p className="mt-2 font-mono text-2xl font-bold text-black">
                     {weightDelta === null
                       ? "—"
-                      : `${weightDelta > 0 ? "+" : ""}${weightDelta}kg`}
+                      : `${
+                          weightDelta > 0
+                            ? "+"
+                            : ""
+                        }${weightDelta}kg`}
                   </p>
-                  <p className="mt-1 text-[9px] text-slate-400">
+
+                  <p className="mt-1 text-[9px] text-black">
                     Based on the two latest saved weights
                   </p>
                 </div>
@@ -1572,19 +1994,25 @@ export default function VitalsTracker() {
           </GlassPanel>
         </section>
 
-        {/* History */}
+        {/* HISTORY */}
         <section className="mt-7">
           <GlassPanel className="p-6 sm:p-7">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="eyebrow">03 · History</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+                <p className="eyebrow">
+                  03 · History
+                </p>
+
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-black">
                   Saved measurements
                 </h2>
               </div>
 
-              <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[.12em] text-slate-400">
-                <Save size={11} className="text-primary" />
+              <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[.12em] text-black">
+                <Save
+                  size={11}
+                  className="text-primary"
+                />
                 Personal log
               </span>
             </div>
@@ -1595,13 +2023,14 @@ export default function VitalsTracker() {
                   <ClipboardPlus size={24} />
                 </div>
 
-                <p className="mt-4 text-sm font-semibold text-slate-800">
+                <p className="mt-4 text-sm font-semibold text-black">
                   No saved entries yet.
                 </p>
 
-                <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-400">
-                  Calculate your first set of metrics above, then save it to
-                  start your personal history.
+                <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-black">
+                  Calculate your first set of metrics
+                  above, then save it to start your personal
+                  history.
                 </p>
               </div>
             ) : (
@@ -1618,9 +2047,14 @@ export default function VitalsTracker() {
           </GlassPanel>
         </section>
 
-        <section className="mt-6 flex items-center justify-center gap-2 text-[9px] font-semibold uppercase tracking-[.14em] text-slate-400">
-          <ShieldCheck size={11} className="text-primary/70" />
+        <section className="mt-6 flex items-center justify-center gap-2 text-[9px] font-semibold uppercase tracking-[.14em] text-black">
+          <ShieldCheck
+            size={11}
+            className="text-primary/70"
+          />
+
           KapHealth · wellness metrics workspace
+
           <ChevronRight size={11} />
         </section>
       </main>

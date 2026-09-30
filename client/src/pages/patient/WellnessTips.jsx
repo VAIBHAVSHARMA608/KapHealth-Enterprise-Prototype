@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BatteryCharging,
@@ -511,11 +512,10 @@ export default function WellnessTips() {
           <div className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="glass-pill inline-flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-primary" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">
+                  <BadgeCheck size={11} />
                   Tips & tricks
                 </span>
-
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.13em] text-emerald-700">
                   <BadgeCheck size={11} />
                   Wellness library
@@ -780,8 +780,8 @@ function LinkButton({ to, children, secondary = false }) {
       to={to}
       className={
         secondary
-          ? "inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-[10px] font-semibold text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
-          : "inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[10px] font-bold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-xl"
+           ? "inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-[10px] font-semibold text-white/80 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
+           : "inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-[10px] font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl"
       }
     >
       {children}
